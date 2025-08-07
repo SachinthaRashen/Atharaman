@@ -1,36 +1,25 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  MapPin, 
-  Users, 
-  Store, 
-  Building2, 
-  Car, 
-  FileText,
-  Map
-} from 'lucide-react';
+import { LayoutDashboard, MapPin, Users, Store, Building2, Car, GitPullRequest, FileText, UserStar, TentTree } from 'lucide-react';
 
 const Sidebar = ({ activeSection, setActiveSection }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'locations', label: 'Manage Locations', icon: MapPin },
-    { id: 'guides', label: 'Manage Guides', icon: Users },
-    { id: 'shop-owners', label: 'Manage Shop Owners', icon: Store },
-    { id: 'hotel-owners', label: 'Manage Hotel Owners', icon: Building2 },
-    { id: 'vehicle-owners', label: 'Manage Vehicle Owners', icon: Car },
-    { id: 'requests', label: 'Manage Requests', icon: FileText },
+    { id: 'locations', label: 'Locations', icon: MapPin },
+    { id: 'guides', label: 'Guides', icon: Users },
+    { id: 'shop-owners', label: 'Shop Owners', icon: Store },
+    { id: 'hotel-owners', label: 'Hotel Owners', icon: Building2 },
+    { id: 'vehicle-owners', label: 'Vehicle Owners', icon: Car },
+    { id: 'requests', label: 'Requests', icon: GitPullRequest },
+    { id: 'reviews', label: 'Reviews', icon: FileText },
+    { id: 'users', label: 'Users', icon: UserStar },
   ];
 
   return (
-    <aside className="bg-white w-64 h-screen fixed left-0 top-16 shadow-lg border-r border-gray-200 z-40">
+    <aside className="bg-white w-64 h-screen fixed left-0 top-0 shadow-lg border-r border-gray-200 z-40">
+      <div className="bg-black w-full h-32 flex items-center justify-center">
+        <img src='src/assets/Logo.jpg' className="w-32"/>
+      </div>
       <div className="p-6">
-        <div className="flex items-center justify-center mb-8">
-          <div className="bg-blue-600 text-white p-3 rounded-lg">
-            <Map className="w-8 h-8" />
-          </div>
-          <h2 className="ml-3 text-xl font-bold text-gray-800">ATHARAMAN</h2>
-        </div>
-        
         <nav className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;

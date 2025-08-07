@@ -26,6 +26,96 @@ const ManageLocations = () => {
       mainImage: 'https://images.pexels.com/photos/3408744/pexels-photo-3408744.jpeg',
       longDescription: 'The Temple of the Sacred Tooth Relic is a Buddhist temple in Kandy...',
       coordinates: { lat: 7.2936, lng: 80.6350 }
+    },
+    {
+      id: 3,
+      name: 'Sigiriya Rock Fortress',
+      shortDescription: 'Ancient rock fortress and palace ruins',
+      province: 'Central',
+      mainImage: 'https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg',
+      longDescription: 'Sigiriya is an ancient rock fortress located in the northern Matale District...',
+      coordinates: { lat: 7.9568, lng: 80.7597 }
+    },
+    {
+      id: 4,
+      name: 'Temple of the Tooth',
+      shortDescription: 'Sacred Buddhist temple in Kandy',
+      province: 'Central',
+      mainImage: 'https://images.pexels.com/photos/3408744/pexels-photo-3408744.jpeg',
+      longDescription: 'The Temple of the Sacred Tooth Relic is a Buddhist temple in Kandy...',
+      coordinates: { lat: 7.2936, lng: 80.6350 }
+    },
+    {
+      id: 5,
+      name: 'Sigiriya Rock Fortress',
+      shortDescription: 'Ancient rock fortress and palace ruins',
+      province: 'Central',
+      mainImage: 'https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg',
+      longDescription: 'Sigiriya is an ancient rock fortress located in the northern Matale District...',
+      coordinates: { lat: 7.9568, lng: 80.7597 }
+    },
+    {
+      id: 6,
+      name: 'Temple of the Tooth',
+      shortDescription: 'Sacred Buddhist temple in Kandy',
+      province: 'Central',
+      mainImage: 'https://images.pexels.com/photos/3408744/pexels-photo-3408744.jpeg',
+      longDescription: 'The Temple of the Sacred Tooth Relic is a Buddhist temple in Kandy...',
+      coordinates: { lat: 7.2936, lng: 80.6350 }
+    },
+    {
+      id: 7,
+      name: 'Sigiriya Rock Fortress',
+      shortDescription: 'Ancient rock fortress and palace ruins',
+      province: 'Central',
+      mainImage: 'https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg',
+      longDescription: 'Sigiriya is an ancient rock fortress located in the northern Matale District...',
+      coordinates: { lat: 7.9568, lng: 80.7597 }
+    },
+    {
+      id: 8,
+      name: 'Temple of the Tooth',
+      shortDescription: 'Sacred Buddhist temple in Kandy',
+      province: 'Central',
+      mainImage: 'https://images.pexels.com/photos/3408744/pexels-photo-3408744.jpeg',
+      longDescription: 'The Temple of the Sacred Tooth Relic is a Buddhist temple in Kandy...',
+      coordinates: { lat: 7.2936, lng: 80.6350 }
+    },
+    {
+      id: 9,
+      name: 'Sigiriya Rock Fortress',
+      shortDescription: 'Ancient rock fortress and palace ruins',
+      province: 'Central',
+      mainImage: 'https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg',
+      longDescription: 'Sigiriya is an ancient rock fortress located in the northern Matale District...',
+      coordinates: { lat: 7.9568, lng: 80.7597 }
+    },
+    {
+      id: 10,
+      name: 'Temple of the Tooth',
+      shortDescription: 'Sacred Buddhist temple in Kandy',
+      province: 'Central',
+      mainImage: 'https://images.pexels.com/photos/3408744/pexels-photo-3408744.jpeg',
+      longDescription: 'The Temple of the Sacred Tooth Relic is a Buddhist temple in Kandy...',
+      coordinates: { lat: 7.2936, lng: 80.6350 }
+    },
+    {
+      id: 11,
+      name: 'Sigiriya Rock Fortress',
+      shortDescription: 'Ancient rock fortress and palace ruins',
+      province: 'Central',
+      mainImage: 'https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg',
+      longDescription: 'Sigiriya is an ancient rock fortress located in the northern Matale District...',
+      coordinates: { lat: 7.9568, lng: 80.7597 }
+    },
+    {
+      id: 12,
+      name: 'Temple of the Tooth',
+      shortDescription: 'Sacred Buddhist temple in Kandy',
+      province: 'Central',
+      mainImage: 'https://images.pexels.com/photos/3408744/pexels-photo-3408744.jpeg',
+      longDescription: 'The Temple of the Sacred Tooth Relic is a Buddhist temple in Kandy...',
+      coordinates: { lat: 7.2936, lng: 80.6350 }
     }
   ]);
 
