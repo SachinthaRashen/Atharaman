@@ -5,8 +5,8 @@ const Modal = ({ isOpen, onClose, title, children, size = 'medium' }) => {
   if (!isOpen) return null;
 
   const sizeClasses = {
-    small: 'max-w-md',
-    medium: 'max-w-2xl',
+    small: 'max-w-4xl',
+    medium: 'max-w-4xl',
     large: 'max-w-4xl',
   };
 

@@ -14,7 +14,7 @@ const DataTable = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 7;
 
   const filteredData = useMemo(() => {
     return data.filter(item =>
@@ -74,7 +74,7 @@ const DataTable = ({
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-200">
             <tr>
               {columns.map((column) => (
                 <th
@@ -134,7 +134,7 @@ const DataTable = ({
                             className="text-blue-600 hover:text-blue-800"
                             title="View"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-5 h-5" />
                           </button>
                         )}
                         {onEdit && (
@@ -146,7 +146,7 @@ const DataTable = ({
                             className="text-yellow-600 hover:text-yellow-800"
                             title="Edit"
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-5 h-5" />
                           </button>
                         )}
                         {onDelete && (
@@ -158,7 +158,7 @@ const DataTable = ({
                             className="text-red-600 hover:text-red-800"
                             title="Delete"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         )}
                       </>
@@ -173,7 +173,7 @@ const DataTable = ({
 
       {totalPages > 1 && (
         <div className="px-6 py-3 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-700">
+          <div className="text-sm text-gray-400">
             Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, sortedData.length)} of {sortedData.length} entries
           </div>
           <div className="flex space-x-1">
