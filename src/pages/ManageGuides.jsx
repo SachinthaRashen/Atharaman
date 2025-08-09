@@ -20,15 +20,41 @@ const ManageGuides = () => {
       languages: ['English', 'Sinhala', 'Tamil'],
       userId: 'user001',
       relatedLocations: ['Sigiriya', 'Kandy'],
+      image: 'https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg'
+    },
+    {
+      id: 2,
+      name: 'Ravi Perera',
+      description: 'Experienced tour guide specializing in cultural sites',
+      nic: '198456789V',
+      businessEmail: 'ravi@guides.lk',
+      personalNumber: '+94771234567',
+      whatsappNumber: '+94771234567',
+      languages: ['English', 'Sinhala', 'Tamil'],
+      userId: 'user001',
+      relatedLocations: ['Sigiriya', 'Kandy'],
+      image: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg'
+    },
+    {
+      id: 3,
+      name: 'Ravi Perera',
+      description: 'Experienced tour guide specializing in cultural sites',
+      nic: '198456789V',
+      businessEmail: 'ravi@guides.lk',
+      personalNumber: '+94771234567',
+      whatsappNumber: '+94771234567',
+      languages: ['English', 'Sinhala', 'Tamil'],
+      userId: 'user001',
+      relatedLocations: ['Sigiriya', 'Kandy'],
       image: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg'
     }
   ]);
 
   const columns = [
     { key: 'name', label: 'Guide Name', sortable: true },
+    { key: 'nic', label: 'NIC', sortable: true },
     { key: 'businessEmail', label: 'Email', sortable: true },
-    { key: 'personalNumber', label: 'Phone', sortable: false },
-    { key: 'languages', label: 'Languages', sortable: false, render: (value) => value.join(', ') },
+    { key: 'personalNumber', label: 'Phone', sortable: true },
   ];
 
   const handleAdd = () => {

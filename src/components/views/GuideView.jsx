@@ -8,7 +8,7 @@ const GuideView = ({ guide }) => {
     <div className="space-y-6">
       <div className="flex items-start space-x-6">
         <img
-          src={guide.image || 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg'}
+          src={guide.image}
           alt={guide.name}
           className="w-32 h-32 object-cover rounded-lg"
         />

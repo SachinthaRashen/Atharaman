@@ -6,8 +6,7 @@ const LocationForm = ({ location, onSave, onCancel }) => {
     name: location?.name || '',
     province: location?.province || '',
     shortDescription: location?.shortDescription || '',
-    longDescription: location?.longDescription || '',
-    coordinates: location?.coordinates || { lat: 0, lng: 0 }
+    longDescription: location?.longDescription || ''
   });
 
   const [mainImage, setMainImage] = useState(null);
@@ -20,16 +19,6 @@ const LocationForm = ({ location, onSave, onCancel }) => {
     setFormData(prev => ({
       ...prev,
       [name]: value
-    }));
-  };
-
-  const handleCoordinateChange = (type, value) => {
-    setFormData(prev => ({
-      ...prev,
-      coordinates: {
-        ...prev.coordinates,
-        [type]: parseFloat(value) || 0
-      }
     }));
   };
 
@@ -68,7 +57,6 @@ const LocationForm = ({ location, onSave, onCancel }) => {
     formDataObj.append('province', formData.province);
     formDataObj.append('shortDescription', formData.shortDescription);
     formDataObj.append('longDescription', formData.longDescription);
-    formDataObj.append('coordinates', JSON.stringify(formData.coordinates));
     
     if (mainImage) formDataObj.append('mainImage', mainImage);
     images.forEach((img, index) => {
@@ -201,37 +189,6 @@ const LocationForm = ({ location, onSave, onCancel }) => {
           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Detailed description of the location"
         />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          <MapPin className="inline w-4 h-4 mr-1" />
-          Location Coordinates
-        </label>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Latitude</label>
-            <input
-              type="number"
-              step="any"
-              value={formData.coordinates.lat}
-              onChange={(e) => handleCoordinateChange('lat', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="7.8731"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Longitude</label>
-            <input
-              type="number"
-              step="any"
-              value={formData.coordinates.lng}
-              onChange={(e) => handleCoordinateChange('lng', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="80.7718"
-            />
-          </div>
-        </div>
       </div>
 
       <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
