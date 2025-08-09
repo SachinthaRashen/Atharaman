@@ -67,27 +67,6 @@ const LocationView = ({ location }) => {
         <p className="text-gray-700 leading-relaxed">{location.longDescription}</p>
       </div>
 
-      {/* Coordinates */}
-      {location.coordinates && (
-        <div>
-          <h4 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-            <MapPin className="w-5 h-5 mr-2" />
-            Location Coordinates
-          </h4>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-sm font-medium text-gray-500">Latitude:</span>
-                <p className="text-gray-900">{location.coordinates.lat}</p>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-500">Longitude:</span>
-                <p className="text-gray-900">{location.coordinates.lng}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
