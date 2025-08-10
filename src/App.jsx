@@ -9,6 +9,7 @@ import ManageHotelOwners from './pages/ManageHotelOwners';
 import ManageVehicleOwners from './pages/ManageVehicleOwners';
 import ManageRequests from './pages/ManageRequests';
 import ManageReviews from './pages/ManageReviews';
+import ManageUsers from './pages/ManageUsers';
 
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -31,6 +32,8 @@ function App() {
         return <ManageRequests />;
       case 'reviews':
         return <ManageReviews />;
+      case 'users':
+        return <ManageUsers />;
       default:
         return <Dashboard />;
     }

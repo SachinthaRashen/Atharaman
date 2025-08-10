@@ -124,7 +124,7 @@ const ManageReviews = () => {
 
   const handleDelete = (review) => {
     if (window.confirm(`Are you sure you want to delete this review?`)) {
-      setReviews(reviews.filter(l => l.id !== review.id));
+      setReviews(reviews.filter(r => r.id !== review.id));
     }
   };
 
