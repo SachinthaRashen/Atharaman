@@ -1,0 +1,394 @@
+/* Homepage specific styles */
+.homePage {
+  min-height: 100vh;
+  background-color: #f7fafc;
+}
+
+/* Custom animations for homepage only */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -30px, 0);
+  }
+  70% {
+    transform: translate3d(0, -15px, 0);
+  }
+  90% {
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(231, 126, 34, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(231, 126, 34, 0.8), 0 0 30px rgba(231, 126, 34, 0.6);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes rotateIn {
+  from {
+    opacity: 0;
+    transform: rotate(-200deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes flipInX {
+  from {
+    opacity: 0;
+    transform: perspective(400px) rotate3d(1, 0, 0, 90deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(400px) rotate3d(1, 0, 0, 0deg);
+  }
+}
+
+@keyframes slideInCard {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
+/* Homepage specific animation classes */
+.homePage .animate-fadeIn {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.homePage .animate-slideUp {
+  animation: slideUp 0.6s ease-out;
+}
+
+.homePage .animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
+.homePage .animate-slideInLeft {
+  animation: slideInLeft 0.8s ease-out;
+}
+
+.homePage .animate-slideInRight {
+  animation: slideInRight 0.8s ease-out;
+}
+
+.homePage .animate-fadeInUp {
+  animation: fadeInUp 1s ease-out;
+}
+
+.homePage .animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.homePage .animate-slideInCard {
+  animation: slideInCard 0.6s ease-out forwards;
+}
+
+.homePage .animate-bounce {
+  animation: bounce 2s infinite;
+}
+
+.homePage .animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.homePage .animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.homePage .animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.homePage .animate-rotateIn {
+  animation: rotateIn 1s ease-out;
+}
+
+.homePage .animate-zoomIn {
+  animation: zoomIn 0.8s ease-out;
+}
+
+.homePage .animate-flipInX {
+  animation: flipInX 1s ease-out;
+}
+
+.homePage .animate-slideInFromBottom {
+  animation: slideInFromBottom 1s ease-out;
+}
+
+.homePage .animate-typewriter {
+  overflow: hidden;
+  border-right: 2px solid #e67e22;
+  white-space: nowrap;
+  animation: typewriter 3s steps(40, end), blink 0.75s step-end infinite;
+}
+
+/* Staggered animations */
+.homePage .animate-stagger-1 { animation-delay: 0.1s; }
+.homePage .animate-stagger-2 { animation-delay: 0.2s; }
+.homePage .animate-stagger-3 { animation-delay: 0.3s; }
+.homePage .animate-stagger-4 { animation-delay: 0.4s; }
+.homePage .animate-stagger-5 { animation-delay: 0.5s; }
+.homePage .animate-stagger-6 { animation-delay: 0.6s; }
+
+/* Hover animations */
+.homePage .hover-lift {
+  transition: all 0.3s ease;
+}
+
+.homePage .hover-lift:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.homePage .hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.homePage .hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.homePage .hover-rotate {
+  transition: transform 0.3s ease;
+}
+
+.homePage .hover-rotate:hover {
+  transform: rotate(5deg);
+}
+
+.homePage .hover-glow:hover {
+  box-shadow: 0 0 20px rgba(231, 126, 34, 0.6);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Homepage specific scrollbar */
+.homePage::-webkit-scrollbar {
+  width: 8px;
+}
+
+.homePage::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.homePage::-webkit-scrollbar-thumb {
+  background: #e67e22;
+  border-radius: 4px;
+}
+
+.homePage::-webkit-scrollbar-thumb:hover {
+  background: #d35400;
+}
+
+/* Homepage specific transitions */
+.homePage .transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Homepage specific focus styles */
+.homePage button:focus,
+.homePage input:focus,
+.homePage textarea:focus {
+  outline: 2px solid #e67e22;
+  outline-offset: 2px;
+}
+
+/* Homepage specific backdrop blur */
+.homePage .backdrop-blur-md {
+  backdrop-filter: blur(12px);
+}
+
+/* Homepage specific gradient text */
+.homePage .bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Homepage specific custom shadows */
+.homePage .shadow-custom {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Homepage responsive design helpers */
+@media (max-width: 768px) {
+  .homePage .hero-text {
+    font-size: 2.5rem;
+  }
+  
+  .homePage .hero-subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+/* Homepage print styles */
+@media print {
+  .homePage .no-print {
+    display: none !important;
+  }
+}
+
+/* Homepage high contrast mode support */
+@media (prefers-contrast: high) {
+  .homePage .text-gray-600 {
+    color: #000000;
+  }
+  
+  .homePage .text-gray-300 {
+    color: #ffffff;
+  }
+}
+
+/* Homepage reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .homePage * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
