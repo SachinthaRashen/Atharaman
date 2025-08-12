@@ -20,6 +20,8 @@ import GuidesSection from './user/components/guides/GuidesSection';
 import HotelsSection from './user/components/hotels/HotelsSection';
 import ShopsSection from './user/components/shops/ShopsSection';
 import VehiclesSection from './user/components/vehicles/VehiclesSection';
+import {LocationsPage} from './user/components/locations/LocationsPage';
+import { LocationDetailPage } from './user/components/locations/LocationDetailPage';
 // User Pages
 import Home from './user/pages/Home';
 import UserProfilePage from './user/pages/UserProfilePage';
@@ -70,6 +72,8 @@ function AppContent() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/locations" element={<LocationsPage />} />
+            <Route path="/location/:id" element={<LocationDetailPage />} />
           </Routes>
         )}
       </AnimatePresence>
