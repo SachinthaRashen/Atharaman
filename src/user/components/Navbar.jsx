@@ -13,7 +13,7 @@ const Navbar = ({ onScrollToSection }) => {
 
   const navItems = [
     { name: 'Home', path: '/' },
-    { name: 'About Us', path: '/about' },
+    { name: 'About Us', id: 'about' },
     { name: 'Locations', path: '/locations' },
     { name: 'Guides', path: '/guides' },
     { name: 'Shops', path: '/shops' },
@@ -22,7 +22,8 @@ const Navbar = ({ onScrollToSection }) => {
   ];
 
   const navigate = useNavigate();
-
+  
+  
   const handleNavClick = (path) => {
     navigate(path);
     setIsMenuOpen(false);
