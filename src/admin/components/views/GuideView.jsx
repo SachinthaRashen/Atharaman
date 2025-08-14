@@ -4,20 +4,27 @@ import { Mail, Phone, MessageCircle, Languages, MapPin, User } from 'lucide-reac
 const GuideView = ({ guide }) => {
   if (!guide) return null;
 
+  // Parse JSON fields
+  const languages = guide.languages ? JSON.parse(guide.languages) : [];
+  const locations = guide.locations ? JSON.parse(guide.locations) : [];
+  const guideImages = guide.guideImage ? JSON.parse(guide.guideImage) : [];
+
   return (
     <div className="space-y-6">
       <div className="flex items-start space-x-6">
-        <img
-          src={guide.image}
-          alt={guide.name}
-          className="w-32 h-32 object-cover rounded-lg"
-        />
+        {guideImages.length > 0 && (
+          <img
+            src={`http://localhost:8000/storage/${guideImages[0]}`} // Adjust based on your storage setup
+            alt={guide.guideName}
+            className="w-32 h-32 object-cover rounded-lg"
+          />
+        )}
         <div className="flex-1">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">{guide.name}</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">{guide.guideName}</h3>
           <p className="text-gray-600 mb-4">{guide.description}</p>
           <div className="flex items-center text-sm text-gray-500">
             <User className="w-4 h-4 mr-1" />
-            <span>User ID: {guide.userId}</span>
+            <span>User ID: {guide.user_id}</span>
           </div>
         </div>
       </div>
@@ -28,7 +35,7 @@ const GuideView = ({ guide }) => {
           <div className="space-y-3">
             <div className="flex items-center">
               <Mail className="w-4 h-4 mr-3 text-gray-400" />
-              <span className="text-gray-700">{guide.businessEmail}</span>
+              <span className="text-gray-700">{guide.businessMail}</span>
             </div>
             <div className="flex items-center">
               <Phone className="w-4 h-4 mr-3 text-gray-400" />
@@ -46,7 +53,7 @@ const GuideView = ({ guide }) => {
           <div className="space-y-3">
             <div>
               <span className="text-sm font-medium text-gray-500">NIC:</span>
-              <p className="text-gray-900">{guide.nic}</p>
+              <p className="text-gray-900">{guide.guideNic}</p>
             </div>
           </div>
         </div>

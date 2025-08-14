@@ -3,22 +3,34 @@ import { Upload, X } from 'lucide-react';
 
 const GuideForm = ({ guide, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
-    name: guide?.name || '',
+    guideName: guide?.guideName || '',
     description: guide?.description || '',
-    nic: guide?.nic || '',
-    businessEmail: guide?.businessEmail || '',
+    guideNic: guide?.guideNic || '',
+    businessMail: guide?.businessMail || '',
     personalNumber: guide?.personalNumber || '',
     whatsappNumber: guide?.whatsappNumber || '',
-    languages: guide?.languages || [],
-    userId: guide?.userId || '',
-    relatedLocations: guide?.relatedLocations || [],
+    languages: guide?.languages ? JSON.parse(guide.languages) : [],
+    user_id: guide?.user_id || '',
+    locations: guide?.locations ? JSON.parse(guide.locations) : [],
   });
 
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState(() => {
+    if (!guide?.guideImage) return [];
+    
+    try {
+      const parsedImages = JSON.parse(guide.guideImage);
+      return Array.isArray(parsedImages) 
+        ? parsedImages.map(img => `http://localhost:8000/storage/${img}`)
+        : [];
+    } catch {
+      return [];
+    }
+  });
 
   const availableLanguages = ['English', 'Sinhala', 'Tamil', 'German', 'French', 'Japanese', 'Chinese'];
   const availableLocations = ['Sigiriya', 'Kandy', 'Colombo', 'Galle', 'Ella', 'Anuradhapura'];
-  const availableUserIds = ['user001', 'user002', 'user003', 'user004', 'user005'];
+  const availableUserIds = [1];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -40,38 +52,76 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
   const handleLocationChange = (location) => {
     setFormData(prev => ({
       ...prev,
-      relatedLocations: prev.relatedLocations.includes(location)
-        ? prev.relatedLocations.filter(l => l !== location)
-        : [...prev.relatedLocations, location]
+      locations: prev.locations.includes(location)
+        ? prev.locations.filter(l => l !== location)
+        : [...prev.locations, location]
     }));
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setImage(file);
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    const newImages = [...images, ...files];
+    setImages(newImages);
+    
+    // Create preview URLs
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
   };
 
-  const removeImage = () => {
-    setImage(null);
+  const removeImage = (index, isStoredImage = false) => {
+    if (isStoredImage) {
+      // For images from the database
+      const updatedPreviews = [...imagePreviews];
+      updatedPreviews.splice(index, 1);
+      setImagePreviews(updatedPreviews);
+      
+      // You might want to add logic to delete the file from server
+    } else {
+      // For newly uploaded images
+      const updatedImages = [...images];
+      updatedImages.splice(index, 1);
+      setImages(updatedImages);
+      
+      const updatedPreviews = [...imagePreviews];
+      URL.revokeObjectURL(updatedPreviews[index]); // Clean up memory
+      updatedPreviews.splice(index, 1);
+      setImagePreviews(updatedPreviews);
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Create FormData object for file upload
     const formDataObj = new FormData();
-    formDataObj.append('name', formData.name);
+    formDataObj.append('guideName', formData.guideName);
     formDataObj.append('description', formData.description);
-    formDataObj.append('nic', formData.nic);
-    formDataObj.append('businessEmail', formData.businessEmail);
+    formDataObj.append('guideNic', formData.guideNic);
+    formDataObj.append('businessMail', formData.businessMail);
     formDataObj.append('personalNumber', formData.personalNumber);
     formDataObj.append('whatsappNumber', formData.whatsappNumber);
-    formDataObj.append('languages', JSON.stringify(formData.languages));
-    formDataObj.append('userId', formData.userId);
-    formDataObj.append('relatedLocations', JSON.stringify(formData.relatedLocations));
+    formDataObj.append('user_id', formData.user_id);
     
-    if (image) formDataObj.append('image', image);
+    // Append arrays directly (not stringified)
+    formData.languages.forEach(lang => {
+      formDataObj.append('languages[]', lang);
+    });
+    
+    formData.locations.forEach(loc => {
+      formDataObj.append('locations[]', loc);
+    });
+    
+    // Append each image file
+    images.forEach(image => {
+      formDataObj.append('guideImage[]', image);
+    });
+
+    console.log('Submitting:', {
+      guideName: formData.guideName,
+      languages: formData.languages,
+      locations: formData.locations
+    });
 
     onSave(formDataObj);
   };
@@ -85,8 +135,8 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
           </label>
           <input
             type="text"
-            name="name"
-            value={formData.name}
+            name="guideName"
+            value={formData.guideName}
             onChange={handleInputChange}
             required
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -99,8 +149,8 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
           </label>
           <input
             type="text"
-            name="nic"
-            value={formData.nic}
+            name="guideNic"
+            value={formData.guideNic}
             onChange={handleInputChange}
             required
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -114,31 +164,27 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
           Profile Image
         </label>
         
-        {/* Image Preview */}
-        <div className="mb-4">
-          <div className="relative h-40 w-40 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-            {image ? (
-              <>
-                <img 
-                  src={URL.createObjectURL(image)} 
-                  alt="Preview"
-                  className="h-full w-full object-cover rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={removeImage}
-                  className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
-                >
-                  <X className="w-4 h-4 text-gray-700" />
-                </button>
-              </>
-            ) : (
-              <div className="text-gray-400 flex flex-col items-center">
-                <Upload className="w-8 h-8 mb-1" />
-                <span className="text-xs">Profile Image</span>
-              </div>
-            )}
-          </div>
+        {/* Image Previews */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          {imagePreviews.map((preview, index) => (
+            <div key={index} className="relative h-32 w-32">
+              <img
+                src={preview}
+                alt={`Preview ${index}`}
+                className="h-full w-full object-cover rounded-lg"
+                onError={(e) => {
+                  e.target.src = '/placeholder-image.jpg'; // Fallback image
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+              >
+                <X className="w-4 h-4 text-gray-700" />
+              </button>
+            </div>
+          ))}
         </div>
         
         {/* Upload Button */}
@@ -148,13 +194,14 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
             className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors w-40"
           >
             <Upload className="w-4 h-4 mr-2" />
-            <span className="text-sm">Upload Image</span>
+            <span className="text-sm">Upload Images</span>
           </label>
           <input
             type="file"
             id="fileInput"
             onChange={handleImageChange}
             accept="image/*"
+            multiple
             className="hidden"
           />
         </div>
@@ -181,8 +228,8 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
           </label>
           <input
             type="email"
-            name="businessEmail"
-            value={formData.businessEmail}
+            name="businessMail"
+            value={formData.businessMail}
             onChange={handleInputChange}
             required
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -194,15 +241,15 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
             User ID *
           </label>
           <select
-            name="userId"
-            value={formData.userId}
+            name="user_id"
+            value={formData.user_id}
             onChange={handleInputChange}
             required
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Select User ID</option>
             {availableUserIds.map(id => (
-              <option key={id} value={id}>{id}</option>
+              <option key={id} value={id}>User #{id}</option>
             ))}
           </select>
         </div>
@@ -247,7 +294,7 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
             <label key={language} className="flex items-center">
               <input
                 type="checkbox"
-                checked={formData.languages.includes(language)}
+                checked={formData.languages.includes(language) || false}
                 onChange={() => handleLanguageChange(language)}
                 className="mr-2"
               />
@@ -266,7 +313,7 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
             <label key={location} className="flex items-center">
               <input
                 type="checkbox"
-                checked={formData.relatedLocations.includes(location)}
+                checked={formData.locations.includes(location) || false}
                 onChange={() => handleLocationChange(location)}
                 className="mr-2"
               />
