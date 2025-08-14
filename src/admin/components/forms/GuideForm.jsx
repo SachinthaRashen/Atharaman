@@ -10,8 +10,8 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
     personalNumber: guide?.personalNumber || '',
     whatsappNumber: guide?.whatsappNumber || '',
     languages: guide?.languages ? JSON.parse(guide.languages) : [],
-    user_id: guide?.user_id || '',
     locations: guide?.locations ? JSON.parse(guide.locations) : [],
+    user_id: guide?.user_id || '',
   });
 
   const [images, setImages] = useState([]);
@@ -70,25 +70,14 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
     setImagePreviews(prev => [...prev, ...newPreviews]);
   };
 
-  const removeImage = (index, isStoredImage = false) => {
-    if (isStoredImage) {
-      // For images from the database
-      const updatedPreviews = [...imagePreviews];
-      updatedPreviews.splice(index, 1);
-      setImagePreviews(updatedPreviews);
-      
-      // You might want to add logic to delete the file from server
-    } else {
-      // For newly uploaded images
-      const updatedImages = [...images];
-      updatedImages.splice(index, 1);
-      setImages(updatedImages);
-      
-      const updatedPreviews = [...imagePreviews];
-      URL.revokeObjectURL(updatedPreviews[index]); // Clean up memory
-      updatedPreviews.splice(index, 1);
-      setImagePreviews(updatedPreviews);
+  const removeImage = (index) => {
+    if (imagePreviews[index].includes('storage')) {
+      // This is an existing image from server
+      // We'll tell backend to remove it by not sending keep_image
+      setKeepExistingImage(false);
     }
+    setImages([]);
+    setImagePreviews([]);
   };
 
   const handleSubmit = (e) => {
@@ -117,11 +106,10 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
       formDataObj.append('guideImage[]', image);
     });
 
-    console.log('Submitting:', {
-      guideName: formData.guideName,
-      languages: formData.languages,
-      locations: formData.locations
-    });
+    // If editing and no new images selected, ensure existing images are preserved
+    if (guide && images.length === 0 && imagePreviews.some(p => p.includes('storage'))) {
+      formDataObj.append('keepExistingImages', 'true');
+    }
 
     onSave(formDataObj);
   };
@@ -249,7 +237,7 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
           >
             <option value="">Select User ID</option>
             {availableUserIds.map(id => (
-              <option key={id} value={id}>User #{id}</option>
+              <option key={id} value={id}>{id}</option>
             ))}
           </select>
         </div>
