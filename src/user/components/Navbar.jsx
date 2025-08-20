@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, User, ChevronDown, LogOut, Settings, Shield, FileText } from 'lucide-react';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import { useNavigate } from 'react-router-dom';
+import { logoutUser } from '../../services/api';
 
 const Navbar = ({ onScrollToSection }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,6 +11,15 @@ const Navbar = ({ onScrollToSection }) => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
+
+  // Load user from localStorage on component mount
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUser(user.name);
+    }
+  }, []);
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -22,7 +32,6 @@ const Navbar = ({ onScrollToSection }) => {
   ];
 
   const navigate = useNavigate();
-  
   
   const handleNavClick = (path) => {
     navigate(path);
@@ -39,9 +48,23 @@ const Navbar = ({ onScrollToSection }) => {
     setIsRegisterModalOpen(false);
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    setIsProfileDropdownOpen(false);
+  const handleLogout = async () => {
+    try {
+      // Call the API logout endpoint
+      await logoutUser();
+    } catch (error) {
+      console.error('Logout API error:', error);
+      // Even if API call fails, we'll still clear local storage
+    } finally {
+      // Always clear local storage and state
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+      setIsProfileDropdownOpen(false);
+      
+      // Redirect to home page
+      window.location.href = '/';
+    }
   };
 
   return (

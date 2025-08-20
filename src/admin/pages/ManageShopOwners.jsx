@@ -1,56 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DataTable from '../components/common/DataTable';
 import Modal from '../components/common/Modal';
 import ShopOwnerForm from '../components/forms/ShopOwnerForm';
 import ShopForm from '../components/forms/ShopForm';
 import ShopOwnerView from '../components/views/ShopOwnerView';
 import ShopView from '../components/views/ShopView';
+import {
+  getShopOwners,
+  getShopOwnerById,
+  createShopOwner,
+  updateShopOwner,
+  deleteShopOwner,
+  getShopsByOwner,
+  createShop,
+  updateShop,
+  deleteShop
+} from '../../services/api';
 
 const ManageShopOwners = () => {
   const [currentView, setCurrentView] = useState('owners'); // 'owners' or 'shops'
   const [selectedOwner, setSelectedOwner] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('add');
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedShopOwner, setSelectedShopOwner] = useState(null);
+  const [shopOwners, setShopOwners] = useState([]);
+  const [shops, setShops] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const [shopOwners, setShopOwners] = useState([
-    {
-      id: 1,
-      name: 'Sunil Fernando',
-      description: 'Traditional craft shop owner',
-      nic: '197234567V',
-      businessEmail: 'sunil@crafts.lk',
-      personalNumber: '+94712345678',
-      whatsappNumber: '+94712345678',
-      userId: 'user002',
-      image: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg'
+  // Fetch shop owners on component mount
+  useEffect(() => {
+    fetchShopOwners();
+  }, []);
+
+  // Fetch shops when selected owner changes
+  useEffect(() => {
+    if (selectedOwner) {
+      fetchShopsByOwner(selectedOwner.id);
     }
-  ]);
+  }, [selectedOwner]);
 
-  const [shops, setShops] = useState([
-    {
-      id: 1,
-      ownerId: 1,
-      name: 'Traditional Crafts Emporium',
-      description: 'Authentic Sri Lankan handicrafts and souvenirs',
-      address: '123 Main Street, Kandy',
-      contactNumber: '+94812345678',
-      relatedLocations: ['Kandy', 'Sigiriya'],
-      image: 'https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg'
+  const fetchShopOwners = async () => {
+    setLoading(true);
+    try {
+      const response = await getShopOwners();
+      setShopOwners(response.data);
+    } catch (error) {
+      console.error('Error fetching shop owners:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
-  const ownerColumns = [
-    { key: 'name', label: 'Owner Name', sortable: true },
-    { key: 'businessEmail', label: 'Email', sortable: true },
-    { key: 'personalNumber', label: 'Phone', sortable: false },
-  ];
-
-  const shopColumns = [
-    { key: 'name', label: 'Shop Name', sortable: true },
-    { key: 'address', label: 'Address', sortable: false },
-    { key: 'contactNumber', label: 'Contact', sortable: false },
-  ];
+  const fetchShopsByOwner = async (ownerId) => {
+    setLoading(true);
+    try {
+      const response = await getShopsByOwner(ownerId);
+      setShops(response.data);
+    } catch (error) {
+      console.error('Error fetching shops:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOwnerRowClick = (owner) => {
     setSelectedOwner(owner);
@@ -64,64 +75,85 @@ const ManageShopOwners = () => {
 
   const handleAdd = () => {
     setModalType('add');
-    setSelectedItem(null);
+    setSelectedShopOwner(null);
     setShowModal(true);
   };
 
-  const handleView = (item) => {
-    setModalType('view');
-    setSelectedItem(item);
-    setShowModal(true);
+  const handleView = async (shopOwner) => {
+    try {
+      const response = await getShopOwnerById(shopOwner.id);
+      setModalType('view');
+      setSelectedShopOwner(response.data);
+      setShowModal(true);
+    } catch (err) {
+      console.error('Error fetching shop owner details:', err);
+    }
   };
 
-  const handleEdit = (item) => {
+  const handleEdit = (shopOwner) => {
     setModalType('edit');
-    setSelectedItem(item);
+    setSelectedShopOwner(shopOwner);
     setShowModal(true);
   };
 
-  const handleDelete = (item) => {
-    const itemName = currentView === 'owners' ? item.name : item.name;
-    if (window.confirm(`Are you sure you want to delete "${itemName}"?`)) {
+  const handleDelete = async (item) => {
+    const itemName = currentView === 'owners' ? item.shopOwnerName : item.shopName;
+    if (window.confirm(`Are you sure you want to delete "${item.itemName}"?`)) {
+      try {
+        if (currentView === 'owners') {
+          await deleteShopOwner(item.id);
+          setShopOwners(shopOwners.filter(o => o.id !== item.id));
+        } else {
+          await deleteShop(item.id);
+          setShops(shops.filter(s => s.id !== item.id));
+        }
+      } catch (error) {
+        console.error('Error deleting:', error);
+      }
+    }
+  };
+
+  const handleSave = async (formData) => {
+    try {
       if (currentView === 'owners') {
-        setShopOwners(shopOwners.filter(o => o.id !== item.id));
+        // ... existing owner save logic ...
       } else {
-        setShops(shops.filter(s => s.id !== item.id));
+        // For shops
+        const shopData = {
+          shopName: formData.shopName,
+          shopAddress: formData.shopAddress,
+          description: formData.description || '',
+          locations: formData.relatedLocations || [], // Ensure array
+          shop_owner_id: selectedOwner.id,
+          user_id: selectedOwner.user_id
+        };
+
+        const response = await createShop(shopData);
+        setShops([...shops, response.data.shop]);
+        setShowModal(false);
       }
+    } catch (error) {
+      console.error('Error saving shop:', error.response?.data || error.message);
+      // Add user-friendly error display here
     }
   };
 
-  const handleSave = (itemData) => {
-    if (currentView === 'owners') {
-      if (modalType === 'add') {
-        const newOwner = {
-          ...itemData,
-          id: Math.max(...shopOwners.map(o => o.id)) + 1
-        };
-        setShopOwners([...shopOwners, newOwner]);
-      } else if (modalType === 'edit') {
-        setShopOwners(shopOwners.map(o => 
-          o.id === selectedItem.id ? { ...o, ...itemData } : o
-        ));
-      }
-    } else {
-      if (modalType === 'add') {
-        const newShop = {
-          ...itemData,
-          id: Math.max(...shops.map(s => s.id)) + 1,
-          ownerId: selectedOwner.id
-        };
-        setShops([...shops, newShop]);
-      } else if (modalType === 'edit') {
-        setShops(shops.map(s => 
-          s.id === selectedItem.id ? { ...s, ...itemData } : s
-        ));
-      }
-    }
-    setShowModal(false);
-  };
+  // Update column definitions to match backend fields
+  const ownerColumns = [
+    { key: 'shopOwnerName', label: 'Owner Name', sortable: true },
+    { key: 'businessMail', label: 'Email', sortable: true },
+    { key: 'contactNumber', label: 'Phone', sortable: true },
+  ];
 
-  const filteredShops = selectedOwner ? shops.filter(s => s.ownerId === selectedOwner.id) : [];
+  const shopColumns = [
+    { key: 'shopName', label: 'Shop Name', sortable: true },
+    { key: 'shopAddress', label: 'Address', sortable: true },
+    { key: 'contactNumber', label: 'Contact', sortable: true },
+  ];
+
+  const filteredShops = selectedOwner ? shops : [];
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="mt-16">
