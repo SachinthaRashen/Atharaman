@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getUsers } from '../../../services/api';
 
-const ShopOwnerForm = ({ owner, onSave, onCancel }) => {
+const ShopOwnerForm = ({ owner, onSave, onCancel, isEditing = false }) => {
   const [formData, setFormData] = useState({
     shopOwnerName: owner?.shopOwnerName || '',
     shopOwnerNic: owner?.shopOwnerNic || '',
@@ -9,7 +10,42 @@ const ShopOwnerForm = ({ owner, onSave, onCancel }) => {
     user_id: owner?.user_id || ''
   });
 
-  const availableUserIds = [1];
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!isEditing) {
+      fetchUsers();
+    }
+  }, [isEditing]);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await getUsers();
+      
+      // Handle different response structures
+      if (Array.isArray(response.data)) {
+        setAvailableUsers(response.data);
+      } else if (response.data && Array.isArray(response.data.users)) {
+        setAvailableUsers(response.data.users);
+      } else if (response.data && Array.isArray(response.data.data)) {
+        setAvailableUsers(response.data.data);
+      } else {
+        console.error('Unexpected API response structure:', response.data);
+        setError('Unexpected data format from server');
+        setAvailableUsers([]);
+      }
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError('Failed to load users. Please try again.');
+      setAvailableUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -88,20 +124,38 @@ const ShopOwnerForm = ({ owner, onSave, onCancel }) => {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          User ID *
+          User ID {isEditing ? '(Cannot be changed)' : '*'}
         </label>
-        <select
-          name="user_id"
-          value={formData.user_id}
-          onChange={handleInputChange}
-          required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Select User ID</option>
-          {availableUserIds.map(id => (
-            <option key={id} value={id}>{id}</option>
-          ))}
-        </select>
+        {isEditing ? (
+          // Display-only field for edit mode
+          <div className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100">
+            {formData.user_id}
+          </div>
+        ) : (
+          // Editable dropdown for add mode
+          <>
+            {loading ? (
+              <div className="text-gray-500 text-sm">Loading users...</div>
+            ) : error ? (
+              <div className="text-red-500 text-sm">{error}</div>
+            ) : (
+              <select
+                name="user_id"
+                value={formData.user_id}
+                onChange={handleInputChange}
+                required
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select User</option>
+                {Array.isArray(availableUsers) && availableUsers.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} (ID: {user.id})
+                  </option>
+                ))}
+              </select>
+            )}
+          </>
+        )}
       </div>
 
       <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
@@ -116,7 +170,7 @@ const ShopOwnerForm = ({ owner, onSave, onCancel }) => {
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Save
+          {isEditing ? 'Update' : 'Save'}
         </button>
       </div>
     </form>

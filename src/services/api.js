@@ -36,6 +36,24 @@ export const registerUser = (userData) => api.post('/register', userData);
 export const loginUser = (credentials) => api.post('/login', credentials);
 export const getProfile = () => api.get('/user/profile');
 export const logoutUser = () => api.post('/logout');
+export const getUsers = () => api.get('/users');
+// Admin Registration & Management
+export const registerAdmin = (adminData) => {
+  return api.post('/admin/users', adminData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+export const updateUser = (id, userData) => {
+  return api.put(`/admin/users/${id}`, userData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+export const deleteUser = (id) => api.delete(`/admin/users/${id}`);
+
 // Password reset endpoints
 export const sendResetLink = (emailData) => api.post('/forgot-password', emailData);
 export const resetPassword = (resetData) => api.post('/reset-password', resetData);
@@ -72,20 +90,18 @@ export const getShopById = (id) => api.get(`/shops/${id}`);
 export const getShopsByOwner = (ownerId) => api.get(`/shops?shop_owner_id=${ownerId}`);
 export const getShopsByLocation = (location) => api.get(`/shops/location/${location}`);
 export const createShop = (formData) => {
-  const postData = {
-    ...formData,
-    locations: Array.isArray(data.relatedLocations) 
-      ? JSON.stringify(data.relatedLocations) 
-      : '[]'
-  };
-  return api.post('/shops', postData);
+  return api.post('/shops', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
 };
 export const updateShop = (id, formData) => {
-  const putData = {
-    ...formData,
-    locations: JSON.stringify(data.locations || [])
-  };
-  return api.put(`/shops/${id}`, putData);
+  return api.put(`/shops/${id}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
 };
 export const deleteShop = (id) => api.delete(`/shops/${id}`);
 
