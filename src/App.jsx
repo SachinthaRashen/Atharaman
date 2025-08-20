@@ -29,6 +29,10 @@ import PrivacyPolicy from './user/pages/PrivacyPolicy';
 import Settings from './user/pages/Settings';
 import TermsAndConditions from './user/pages/TermsAndConditions';
 import ForgotPassword from './user/pages/ForgotPassword';
+import ResetPassword from './user/pages/ResetPassword';
+import Unauthorized from './user/pages/Unauthorized';
+// Import ProtectedRoute
+import ProtectedRoute from './services/ProtectedRoute';
 
 function AppContent() {
   const location = useLocation();
@@ -38,22 +42,58 @@ function AppContent() {
     <div className="App">
       <AnimatePresence mode="wait">
         {isAdminRoute ? (
-          // Admin Layout
+          // Admin Layout - All admin routes are protected
           <div className="min-h-screen bg-gray-50">
             <Navbar />
             <div className="flex">
               <Sidebar />
               <main className="flex-1 ml-64 p-6">
                 <Routes location={location} key={location.pathname}>
-                  <Route path="/admin" element={<Dashboard />} />
-                  <Route path="/admin/locations" element={<ManageLocations />} />
-                  <Route path="/admin/guides" element={<ManageGuides />} />
-                  <Route path="/admin/shopowners" element={<ManageShopOwners />} />
-                  <Route path="/admin/hotelowners" element={<ManageHotelOwners />} />
-                  <Route path="/admin/vehicleowners" element={<ManageVehicleOwners />} />
-                  <Route path="/admin/requests" element={<ManageRequests />} />
-                  <Route path="/admin/reviews" element={<ManageReviews />} />
-                  <Route path="/admin/users" element={<ManageUsers />} />
+                  <Route path="/admin" element={
+                    <ProtectedRoute allowedRoles={['Admin']}>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/locations" element={
+                    <ProtectedRoute allowedRoles={['Admin']}>
+                      <ManageLocations />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/guides" element={
+                    <ProtectedRoute allowedRoles={['Admin']}>
+                      <ManageGuides />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/shopowners" element={
+                    <ProtectedRoute allowedRoles={['Admin']}>
+                      <ManageShopOwners />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/hotelowners" element={
+                    <ProtectedRoute allowedRoles={['Admin']}>
+                      <ManageHotelOwners />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/vehicleowners" element={
+                    <ProtectedRoute allowedRoles={['Admin']}>
+                      <ManageVehicleOwners />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/requests" element={
+                    <ProtectedRoute allowedRoles={['Admin']}>
+                      <ManageRequests />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/reviews" element={
+                    <ProtectedRoute allowedRoles={['Admin']}>
+                      <ManageReviews />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/users" element={
+                    <ProtectedRoute allowedRoles={['Admin']}>
+                      <ManageUsers />
+                    </ProtectedRoute>
+                  } />
                 </Routes>
               </main>
             </div>
@@ -62,18 +102,23 @@ function AppContent() {
           // User Layout
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
-            <Route path="/profile" element={<UserProfilePage />} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <UserProfilePage />
+              </ProtectedRoute>
+            } />
             <Route path="/guides" element={<GuidesSection />} />
             <Route path="/hotels" element={<HotelsSection />} />
             <Route path="/shops" element={<ShopsSection />} />
             <Route path="/vehicles" element={<VehiclesSection />} />
-            <Route path="/profile" element={<UserProfilePage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/locations" element={<LocationsPage />} />
             <Route path="/location/:id" element={<LocationDetailPage />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
           </Routes>
         )}
       </AnimatePresence>

@@ -1,26 +1,46 @@
 import React, { useState } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
+import { registerUser } from '../../services/api';
 
 const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    name: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
-    if (formData.firstName && formData.lastName && formData.email && formData.password) {
-      onRegister(formData.firstName);
-      onClose();
+
+    setLoading(true);
+    
+    try {
+      const response = await registerUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      });
+      
+      if (response.data.message) {
+        onRegister(formData.name);
+        onClose();
+        // Optionally switch to login modal or show success message
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,40 +64,30 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
           <p className="text-gray-600">Join us for amazing adventures</p>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name Fields */}
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                First Name
-              </label>
-              <input
-                id="firstName"
-                type="text"
-                value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                placeholder="First name"
-                required
-                autoComplete="given-name"
-              />
-            </div>
-            <div className="flex-1">
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                Last Name
-              </label>
-              <input
-                id="lastName"
-                type="text"
-                value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                placeholder="Last name"
-                required
-                autoComplete="family-name"
-              />
-            </div>
+          {/* Name Field */}
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              Full Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+              placeholder="Your full name"
+              required
+              autoComplete="name"
+            />
           </div>
 
           {/* Email Field */}
@@ -150,9 +160,10 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-green-600 hover:to-teal-600 transform hover:scale-[1.02] transition-all duration-200 shadow-md hover:shadow-green-500/20"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-green-600 hover:to-teal-600 transform hover:scale-[1.02] transition-all duration-200 shadow-md hover:shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create Account
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 

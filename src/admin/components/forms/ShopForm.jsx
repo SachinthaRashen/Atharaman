@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 
 const ShopForm = ({ shop, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
-    name: shop?.name || '',
+    shopName: shop?.shopName || '',
+    shopAddress: shop?.shopAddress || '',
     description: shop?.description || '',
-    address: shop?.address || '',
     contactNumber: shop?.contactNumber || '',
-    relatedLocations: shop?.relatedLocations || [],
-    image: shop?.image || ''
+    relatedLocations: shop?.locations ? JSON.parse(shop.locations) : [],
+    shopImage: shop?.shopImage || ''
   });
 
   const availableLocations = ['Sigiriya', 'Kandy', 'Colombo', 'Galle', 'Ella', 'Anuradhapura'];
@@ -29,9 +29,26 @@ const ShopForm = ({ shop, onSave, onCancel }) => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    setFormData(prev => ({
+      ...prev,
+      shopImage: files
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Ensure relatedLocations is always an array
+    const formDataWithLocations = {
+      ...formData,
+      relatedLocations: Array.isArray(formData.relatedLocations) 
+        ? formData.relatedLocations 
+        : []
+    };
+    
+    onSave(formDataWithLocations);
   };
 
   return (
@@ -42,8 +59,8 @@ const ShopForm = ({ shop, onSave, onCancel }) => {
         </label>
         <input
           type="text"
-          name="name"
-          value={formData.name}
+          name="shopName"
+          value={formData.shopName}
           onChange={handleInputChange}
           required
           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -52,26 +69,25 @@ const ShopForm = ({ shop, onSave, onCancel }) => {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Image URL
+          Shop Images
         </label>
         <input
-          type="url"
-          name="image"
-          value={formData.image}
-          onChange={handleInputChange}
+          type="file"
+          name="shopImage"
+          onChange={handleImageChange}
+          multiple
           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Description *
+          Description
         </label>
         <textarea
           name="description"
           value={formData.description}
           onChange={handleInputChange}
-          required
           rows="3"
           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
@@ -83,8 +99,8 @@ const ShopForm = ({ shop, onSave, onCancel }) => {
         </label>
         <input
           type="text"
-          name="address"
-          value={formData.address}
+          name="shopAddress"
+          value={formData.shopAddress}
           onChange={handleInputChange}
           required
           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
