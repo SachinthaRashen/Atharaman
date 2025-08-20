@@ -12,6 +12,7 @@ import {
   updateShopOwner,
   deleteShopOwner,
   getShopsByOwner,
+  getShopById,
   createShop,
   updateShop,
   deleteShop
@@ -23,6 +24,7 @@ const ManageShopOwners = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('add');
   const [selectedShopOwner, setSelectedShopOwner] = useState(null);
+  const [selectedShop, setSelectedShop] = useState(null);
   const [shopOwners, setShopOwners] = useState([]);
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -71,34 +73,49 @@ const ManageShopOwners = () => {
   const handleBackToOwners = () => {
     setCurrentView('owners');
     setSelectedOwner(null);
+    setSelectedShop(null);
   };
 
   const handleAdd = () => {
     setModalType('add');
     setSelectedShopOwner(null);
+    setSelectedShop(null);
     setShowModal(true);
   };
 
-  const handleView = async (shopOwner) => {
+  const handleView = async (item) => {
     try {
-      const response = await getShopOwnerById(shopOwner.id);
-      setModalType('view');
-      setSelectedShopOwner(response.data);
-      setShowModal(true);
+      if (currentView === 'owners') {
+        const response = await getShopOwnerById(item.id);
+        setModalType('view');
+        setSelectedShopOwner(response.data);
+        setShowModal(true);
+      } else {
+        const response = await getShopById(item.id);
+        setModalType('view');
+        setSelectedShop(response.data);
+        setShowModal(true);
+      }
     } catch (err) {
-      console.error('Error fetching shop owner details:', err);
+      console.error('Error fetching details:', err);
     }
   };
 
-  const handleEdit = (shopOwner) => {
+  const handleEdit = (item) => {
     setModalType('edit');
-    setSelectedShopOwner(shopOwner);
+    if (currentView === 'owners') {
+      setSelectedShopOwner(item);
+      setSelectedShop(null);
+    } else {
+      setSelectedShop(item);
+      setSelectedShopOwner(null);
+    }
     setShowModal(true);
   };
 
   const handleDelete = async (item) => {
     const itemName = currentView === 'owners' ? item.shopOwnerName : item.shopName;
-    if (window.confirm(`Are you sure you want to delete "${item.itemName}"?`)) {
+    if (window.confirm(`Are you sure you want to delete "${itemName}"?`)) {
       try {
         if (currentView === 'owners') {
           await deleteShopOwner(item.id);
@@ -115,26 +132,34 @@ const ManageShopOwners = () => {
 
   const handleSave = async (formData) => {
     try {
-      if (currentView === 'owners') {
-        // ... existing owner save logic ...
+      if (currentView === 'owners') {   
+        if (modalType === 'add') {
+          const response = await createShopOwner(formData);
+          setShopOwners([...shopOwners, response.data.shopOwner]);
+        } else if (modalType === 'edit') {
+          const response = await updateShopOwner(selectedShopOwner.id, formData);
+          console.log('Update response:', response.data);
+          setShopOwners(shopOwners.map(owner => 
+            owner.id === selectedShopOwner.id ? response.data.shopOwner : owner
+          ));
+        }
+        setShowModal(false);
       } else {
-        // For shops
-        const shopData = {
-          shopName: formData.shopName,
-          shopAddress: formData.shopAddress,
-          description: formData.description || '',
-          locations: formData.relatedLocations || [], // Ensure array
-          shop_owner_id: selectedOwner.id,
-          user_id: selectedOwner.user_id
-        };
-
-        const response = await createShop(shopData);
-        setShops([...shops, response.data.shop]);
+        // For shops - formData is now a FormData object
+        const response = modalType === 'add'
+          ? await createShop(formData)
+          : await updateShop(selectedShop.id, formData);
+        
+        setShops(prev => modalType === 'add'
+          ? [...prev, response.data.shop]
+          : prev.map(s => s.id === response.data.shop.id ? response.data.shop : s)
+        );
         setShowModal(false);
       }
     } catch (error) {
-      console.error('Error saving shop:', error.response?.data || error.message);
-      // Add user-friendly error display here
+      console.error('Error saving:', error);
+      console.error('Error response:', error.response?.data);
+      alert(`Error: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -193,7 +218,7 @@ const ManageShopOwners = () => {
                 ← Back to Shop Owners
               </button>
               <h1 className="text-2xl font-bold text-gray-900">
-                Shops - {selectedOwner?.name}
+                Shops - {selectedOwner?.shopOwnerName || selectedOwner?.name}
               </h1>
               <p className="text-gray-600 mt-1">Manage shops for this owner</p>
             </div>
@@ -229,22 +254,25 @@ const ManageShopOwners = () => {
       >
         {modalType === 'view' ? (
           currentView === 'owners' ? (
-            <ShopOwnerView owner={selectedItem} />
+            <ShopOwnerView owner={selectedShopOwner} />
           ) : (
-            <ShopView shop={selectedItem} />
+            <ShopView shop={selectedShop} />
           )
         ) : (
           currentView === 'owners' ? (
             <ShopOwnerForm
-              owner={selectedItem}
+              owner={selectedShopOwner}
               onSave={handleSave}
               onCancel={() => setShowModal(false)}
+              isEditing={modalType === 'edit'}
             />
           ) : (
             <ShopForm
-              shop={selectedItem}
+              shop={selectedShop}
               onSave={handleSave}
               onCancel={() => setShowModal(false)}
+              isEditing={modalType === 'edit'}
+              selectedOwner={selectedOwner}
             />
           )
         )}

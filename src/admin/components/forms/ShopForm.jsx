@@ -1,13 +1,28 @@
 import React, { useState } from 'react';
+import { Upload, X } from 'lucide-react';
 
-const ShopForm = ({ shop, onSave, onCancel }) => {
+const ShopForm = ({ shop, onSave, onCancel, selectedOwner }) => {
   const [formData, setFormData] = useState({
     shopName: shop?.shopName || '',
     shopAddress: shop?.shopAddress || '',
     description: shop?.description || '',
-    contactNumber: shop?.contactNumber || '',
-    relatedLocations: shop?.locations ? JSON.parse(shop.locations) : [],
-    shopImage: shop?.shopImage || ''
+    locations: shop?.locations ? JSON.parse(shop.locations) : [],
+    user_id: shop?.user_id || selectedOwner?.user_id || '',
+    shop_owner_id: shop?.shop_owner_id || selectedOwner?.id || '',
+  });
+
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState(() => {
+    if (!shop?.shopImage) return [];
+      
+    try {
+      const parsedImages = JSON.parse(shop.shopImage);
+      return Array.isArray(parsedImages) 
+        ? parsedImages.map(img => `http://localhost:8000/storage/${img}`)
+        : [];
+    } catch {
+      return [];
+    }
   });
 
   const availableLocations = ['Sigiriya', 'Kandy', 'Colombo', 'Galle', 'Ella', 'Anuradhapura'];
@@ -23,32 +38,76 @@ const ShopForm = ({ shop, onSave, onCancel }) => {
   const handleLocationChange = (location) => {
     setFormData(prev => ({
       ...prev,
-      relatedLocations: prev.relatedLocations.includes(location)
-        ? prev.relatedLocations.filter(l => l !== location)
-        : [...prev.relatedLocations, location]
+      locations: prev.locations.includes(location)
+        ? prev.locations.filter(l => l !== location)
+        : [...prev.locations, location]
     }));
   };
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    setFormData(prev => ({
-      ...prev,
-      shopImage: files
-    }));
+    if (!files.length) return;
+    
+    // Filter only valid image files
+    const validImageFiles = files.filter(file => 
+      file.type.startsWith('image/') && 
+      ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'].includes(file.type)
+    );
+    
+    const newImages = [...images, ...validImageFiles];
+    setImages(newImages);
+    
+    // Create preview URLs only for valid images
+    const newPreviews = validImageFiles.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  const removeImage = (index) => {
+    const newImages = [...images];
+    const newPreviews = [...imagePreviews];
+    
+    // Revoke the object URL to prevent memory leaks
+    if (newPreviews[index].startsWith('blob:')) {
+      URL.revokeObjectURL(newPreviews[index]);
+    }
+    
+    newImages.splice(index, 1);
+    newPreviews.splice(index, 1);
+    
+    setImages(newImages);
+    setImagePreviews(newPreviews);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const formDataObj = new FormData();
+    formDataObj.append('shopName', formData.shopName);
+    formDataObj.append('shopAddress', formData.shopAddress);
+    formDataObj.append('description', formData.description);
+    formDataObj.append('user_id', formData.user_id);
+    formDataObj.append('shop_owner_id', formData.shop_owner_id);
     
-    // Ensure relatedLocations is always an array
-    const formDataWithLocations = {
-      ...formData,
-      relatedLocations: Array.isArray(formData.relatedLocations) 
-        ? formData.relatedLocations 
-        : []
-    };
+    // Only append locations if they exist
+    if (formData.locations && formData.locations.length > 0) {
+      formData.locations.forEach(loc => {
+        formDataObj.append('locations[]', loc);
+      });
+    }
+
+    // Only append images if they exist and are valid
+    if (images.length > 0) {
+      images.forEach(image => {
+        if (image instanceof File && image.type.startsWith('image/')) {
+          formDataObj.append('shopImage[]', image);
+        }
+      });
+    } else if (shop && imagePreviews.some(p => p.includes('storage'))) {
+      // For editing: if no new images but existing ones, tell backend to keep them
+      formDataObj.append('keepExistingImages', 'true');
+    }
     
-    onSave(formDataWithLocations);
+    onSave(formDataObj);
   };
 
   return (
@@ -67,17 +126,53 @@ const ShopForm = ({ shop, onSave, onCancel }) => {
         />
       </div>
 
+      {/* Image Upload Section */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Shop Images
+          Shop Image
         </label>
-        <input
-          type="file"
-          name="shopImage"
-          onChange={handleImageChange}
-          multiple
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+        
+        {/* Image Previews */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          {imagePreviews.map((preview, index) => (
+            <div key={index} className="relative h-32 w-32">
+              <img
+                src={preview}
+                alt={`Preview ${index}`}
+                className="h-full w-full object-cover rounded-lg"
+                onError={(e) => {
+                  e.target.src = '/placeholder-image.jpg'; // Fallback image
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+              >
+                <X className="w-4 h-4 text-gray-700" />
+              </button>
+            </div>
+          ))}
+        </div>
+        
+        {/* Upload Button */}
+        <div className="flex flex-col">
+          <label 
+            htmlFor="fileInput"
+            className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors w-40"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            <span className="text-sm">Upload Images</span>
+          </label>
+          <input
+            type="file"
+            id="fileInput"
+            onChange={handleImageChange}
+            accept="image/*"
+            multiple
+            className="hidden"
+          />
+        </div>
       </div>
 
       <div>
@@ -109,20 +204,6 @@ const ShopForm = ({ shop, onSave, onCancel }) => {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Contact Number *
-        </label>
-        <input
-          type="tel"
-          name="contactNumber"
-          value={formData.contactNumber}
-          onChange={handleInputChange}
-          required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
           Related Locations
         </label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -130,7 +211,7 @@ const ShopForm = ({ shop, onSave, onCancel }) => {
             <label key={location} className="flex items-center">
               <input
                 type="checkbox"
-                checked={formData.relatedLocations.includes(location)}
+                checked={formData.locations.includes(location)} // ✅ Changed to 'locations'
                 onChange={() => handleLocationChange(location)}
                 className="mr-2"
               />
