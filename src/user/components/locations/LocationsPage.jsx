@@ -1,187 +1,206 @@
-import React, { useState, useMemo } from 'react';
-import { useEffect } from 'react';
-import { SearchBar } from './SearchBar';
-import { FilterOptions } from './FilterOptions';
-import { LocationCard } from './LocationCard';
-import { ChevronRight, Compass, Sparkles } from 'lucide-react';
-import { locations } from '../../data/locations';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Filter, MapPin, ArrowLeft, ChevronDown, Grid, List } from 'lucide-react';
+import LocationCard from './LocationCard';
+import { locations } from '../../data/locationsData';
+import styles from '../../styles/LocationsPage.module.css';
 
 export const LocationsPage = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedProvince, setSelectedProvince] = useState('all');
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [viewMode, setViewMode] = useState('grid');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const locationsPerPage = 9;
 
-  useEffect(() => {
-  const savedPosition = sessionStorage.getItem('scrollPosition');
-    if (savedPosition) {
-      window.scrollTo(0, parseInt(savedPosition, 10));
-      sessionStorage.removeItem('scrollPosition'); 
-    }
-  },[]);
-  const filteredLocations = useMemo(() => {
-    return locations.filter(location => {
-      const matchesSearch = location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           location.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           location.shortDescription.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCategory = selectedCategory === 'all' || location.category === selectedCategory;
-      const matchesProvince = selectedProvince === 'all' || location.province === selectedProvince;
-      
-      return matchesSearch && matchesCategory && matchesProvince;
-    });
-  }, [searchTerm, selectedCategory, selectedProvince]);
+  const filters = [
+    { value: 'all', label: 'All Locations' },
+    { value: 'mountain', label: 'Mountains' },
+    { value: 'desert', label: 'Deserts' },
+    { value: 'forest', label: 'Forests' },
+    { value: 'beach', label: 'Beaches' },
+    { value: 'lake', label: 'Lakes' }
+  ];
 
-  const paginatedLocations = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredLocations.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredLocations, currentPage]);
+  const filteredLocations = locations.filter(location => {
+    const matchesSearch = location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         location.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = selectedFilter === 'all' || location.category === selectedFilter;
+    return matchesSearch && matchesFilter;
+  });
 
-  const totalPages = Math.ceil(filteredLocations.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredLocations.length / locationsPerPage);
+  const startIndex = (currentPage - 1) * locationsPerPage;
+  const currentLocations = filteredLocations.slice(startIndex, startIndex + locationsPerPage);
+
+  const handleLocationClick = (locationId) => {
+    navigate(`/location/${locationId}`);
+  };
 
   const handleLoadMore = () => {
-    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
   };
 
-  const handleNextPage = () => {
-    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
   };
 
-  const handlePrevPage = () => {
-    setCurrentPage(prev => Math.max(prev - 1, 1));
-  };
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedFilter]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-800 text-white">
-        <div className="absolute inset-0 bg-black/20"></div>
-        
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-4 -right-4 w-72 h-72 bg-white/5 rounded-full animate-pulse"></div>
-          <div className="absolute top-1/2 -left-16 w-48 h-48 bg-white/10 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute bottom-4 right-1/4 w-24 h-24 bg-white/5 rounded-full animate-ping" style={{ animationDelay: '2s' }}></div>
-        </div>
-
-        <div className="relative z-10 container mx-auto px-4 py-20">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <Compass className="w-12 h-12 animate-spin" style={{ animationDuration: '8s' }} />
-              <Sparkles className="w-8 h-8 animate-bounce" />
-            </div>
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 ${styles.locationsPage}`}>
+      {/* Header */}
+      <div className="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <button
+              onClick={() => navigate('/')}
+              className={`flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors ${styles.animateSlideInLeft}`}
+            >
+              <ArrowLeft size={20} />
+              <span>Back to Home</span>
+            </button>
             
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-              Discover Sri Lanka
+            <div className={`flex items-center space-x-4 ${styles.animateSlideInRight}`}>
+              <button
+                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+              >
+                {viewMode === 'grid' ? <List size={20} /> : <Grid size={20} />}
+              </button>
+            </div>
+          </div>
+
+          <div className={`text-center mb-8 ${styles.animateFadeInUp}`}>
+            <h1 className={`text-4xl font-bold text-gray-900 mb-4 ${styles.animateZoomIn}`}>
+              Discover Amazing Locations
             </h1>
-            <p className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed">
-              Explore the Pearl of the Indian Ocean's breathtaking natural wonders and rich cultural heritage
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Explore breathtaking natural destinations around the world
             </p>
+          </div>
 
-            <div className="mb-8">
-              <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+          {/* Search and Filter Bar */}
+          <div className={`flex flex-col md:flex-row gap-4 ${styles.animateSlideInUp}`}>
+            {/* Search Bar */}
+            <div className="flex-1 relative">
+              <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search locations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${styles.searchInput}`}
+              />
             </div>
-            
-            <FilterOptions 
-              selectedCategory={selectedCategory} 
-              onCategoryChange={setSelectedCategory}
-              selectedProvince={selectedProvince}
-              onProvinceChange={setSelectedProvince}
-            />
+
+            {/* Filter Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className={`flex items-center space-x-2 px-6 py-3 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all ${styles.filterButton}`}
+              >
+                <Filter size={20} />
+                <span>{filters.find(f => f.value === selectedFilter)?.label}</span>
+                <ChevronDown size={16} className={`transform transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isFilterOpen && (
+                <div className={`absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 ${styles.animateSlideDown}`}>
+                  {filters.map((filter) => (
+                    <button
+                      key={filter.value}
+                      onClick={() => {
+                        setSelectedFilter(filter.value);
+                        setIsFilterOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors ${
+                        selectedFilter === filter.value ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Results Count */}
+          <div className={`mt-4 text-gray-600 ${styles.animateFadeIn}`}>
+            Showing {currentLocations.length} of {filteredLocations.length} locations
           </div>
         </div>
       </div>
 
-      {/* Results Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
-            {filteredLocations.length} Amazing {selectedCategory === 'all' ? 'Locations' : selectedCategory} Found
-            {selectedProvince !== 'all' && ` in ${selectedProvince} Province`}
-          </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full"></div>
-        </div>
-
-        {/* Location Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {paginatedLocations.map((location, index) => (
-            <div
+      {/* Locations Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${styles.locationsGrid}`}>
+          {currentLocations.map((location, index) => (
+            <LocationCard
               key={location.id}
-              className="animate-fade-in-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <LocationCard location={location} />
-            </div>
+              location={location}
+              onClick={() => handleLocationClick(location.id)}
+              animationDelay={index * 0.1}
+            />
           ))}
         </div>
 
-        {/* Pagination Section */}
-        {filteredLocations.length > itemsPerPage && (
-          <div className="text-center">
-            <div className="bg-white rounded-2xl shadow-lg p-8 inline-block">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                Showing {Math.min(currentPage * itemsPerPage, filteredLocations.length)} of {filteredLocations.length} locations
-              </h3>
-              
-              <div className="flex items-center justify-center space-x-4 mb-6">
-                {currentPage > 1 && (
-                  <button
-                    onClick={handlePrevPage}
-                    className="bg-white text-gray-700 border-2 border-gray-300 px-6 py-3 rounded-full font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 flex items-center space-x-2"
-                  >
-                    <ChevronRight className="w-4 h-4 rotate-180" />
-                    <span>Previous Page</span>
-                  </button>
-                )}
-                
-                {currentPage < totalPages && (
-                  <button
-                    onClick={handleLoadMore}
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                  >
-                    Load More Adventures
-                  </button>
-                )}
-                
-                {currentPage < totalPages && (
-                  <button
-                    onClick={handleNextPage}
-                    className="bg-white text-gray-700 border-2 border-gray-300 px-6 py-3 rounded-full font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 flex items-center space-x-2"
-                  >
-                    <span>Next Page</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              
-              {/* Page indicator */}
-              <div className="flex justify-center space-x-2">
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      currentPage === i + 1
-                        ? 'bg-blue-500 scale-125'
-                        : 'bg-gray-300 hover:bg-gray-400'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
+        {/* No Results */}
+        {currentLocations.length === 0 && (
+          <div className={`text-center py-16 ${styles.animateFadeInUp}`}>
+            <div className="text-6xl mb-4">🏔️</div>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-2">No locations found</h3>
+            <p className="text-gray-600">Try adjusting your search or filter criteria</p>
           </div>
         )}
 
-        {filteredLocations.length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Compass className="w-12 h-12 text-gray-400" />
+        {/* Pagination */}
+        {filteredLocations.length > locationsPerPage && (
+          <div className={`flex justify-center items-center space-x-4 mt-12 ${styles.animateSlideInUp}`}>
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className="px-6 py-3 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              Previous
+            </button>
+            
+            <div className="flex items-center space-x-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-10 h-10 rounded-lg transition-all ${
+                    currentPage === page
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-white border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
             </div>
-            <h3 className="text-2xl font-bold text-gray-600 mb-4">No locations found</h3>
-            <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+
+            <button
+              onClick={handleLoadMore}
+              disabled={currentPage === totalPages}
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              Load More
+            </button>
           </div>
         )}
       </div>
     </div>
   );
 };
+
+export default LocationsPage;
