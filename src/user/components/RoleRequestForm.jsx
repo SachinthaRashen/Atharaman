@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { X, User, Mail, Phone, FileText, MapPin, Languages, Image, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, User, Mail, Phone, FileText, MapPin, Languages, Image, MessageCircle, Check } from 'lucide-react';
+import { getLocations } from '../../services/api';
 
 const RoleRequestForm = ({ role, userData, onSubmit, onCancel, isSubmitting }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const RoleRequestForm = ({ role, userData, onSubmit, onCancel, isSubmitting }) =
     // Role-specific fields with defaults
     nic: '',
     contactNumber: '',
+    personalNumber: '',
     whatsappNumber: '',
     description: '',
     languages: ['English'],
@@ -16,21 +18,116 @@ const RoleRequestForm = ({ role, userData, onSubmit, onCancel, isSubmitting }) =
     guideImage: null
   });
 
+  const [availableLocations, setAvailableLocations] = useState([]);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState('');
+
+  const availableLanguages = ['English', 'Sinhala', 'Tamil', 'German', 'French', 'Japanese', 'Chinese'];
+
+  useEffect(() => {
+    if (role === 'guide' || role === 'vehicle_owner') {
+      fetchLocations();
+    }
+  }, [role]);
+
+  const fetchLocations = async () => {
+    setLocationLoading(true);
+    setLocationError('');
+    try {
+      const response = await getLocations();
+      
+      if (Array.isArray(response.data)) {
+        setAvailableLocations(response.data);
+      } else {
+        console.error('Unexpected API response structure for locations:', response.data);
+        setLocationError('Unexpected data format from server');
+        setAvailableLocations([]);
+      }
+    } catch (err) {
+      console.error('Error fetching locations:', err);
+      setLocationError('Failed to load locations. Please try again.');
+      setAvailableLocations([]);
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleArrayChange = (field, value) => {
+  const handleLanguageChange = (language) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value.split(',').map(item => item.trim()).filter(item => item)
+      languages: prev.languages.includes(language)
+        ? prev.languages.filter(l => l !== language)
+        : [...prev.languages, language]
+    }));
+  };
+
+  const handleLocationChange = (locationName) => {
+    setFormData(prev => ({
+      ...prev,
+      locations: prev.locations.includes(locationName)
+        ? prev.locations.filter(l => l !== locationName)
+        : [...prev.locations, locationName]
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
+  };
+
+  // Languages Checkbox Component
+  const LanguagesCheckbox = () => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">Languages *</label>
+      <div className="grid grid-cols-2 gap-2">
+        {availableLanguages.map(language => (
+          <label key={language} className="flex items-center">
+            <input
+              type="checkbox"
+              checked={formData.languages.includes(language)}
+              onChange={() => handleLanguageChange(language)}
+              className="mr-2"
+            />
+            {language}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Locations Checkbox Component
+  const LocationsCheckbox = () => {
+    if (locationLoading) {
+      return <div className="text-gray-500 text-sm">Loading locations...</div>;
+    }
+    
+    if (locationError) {
+      return <div className="text-red-500 text-sm">{locationError}</div>;
+    }
+
+    return (
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Locations *</label>
+        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+          {availableLocations.map(location => (
+            <label key={location.id} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={formData.locations.includes(location.locationName)}
+                onChange={() => handleLocationChange(location.locationName)}
+                className="mr-2"
+              />
+              {location.locationName}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const renderGuideForm = () => (
@@ -92,31 +189,8 @@ const RoleRequestForm = ({ role, userData, onSubmit, onCancel, isSubmitting }) =
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Languages *</label>
-        <input
-          type="text"
-          value={formData.languages.join(', ')}
-          onChange={(e) => handleArrayChange('languages', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-          placeholder="English, Sinhala, Tamil"
-        />
-        <p className="text-xs text-gray-500 mt-1">Separate languages with commas</p>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Locations *</label>
-        <input
-          type="text"
-          value={formData.locations.join(', ')}
-          onChange={(e) => handleArrayChange('locations', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-          placeholder="Colombo, Kandy, Galle"
-        />
-        <p className="text-xs text-gray-500 mt-1">Separate locations with commas</p>
-      </div>
+      <LanguagesCheckbox />
+      <LocationsCheckbox />
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
@@ -230,11 +304,11 @@ const RoleRequestForm = ({ role, userData, onSubmit, onCancel, isSubmitting }) =
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Personal Number *</label>
           <input
             type="tel"
-            name="contactNumber"
-            value={formData.contactNumber}
+            name="personalNumber"
+            value={formData.personalNumber}
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
@@ -260,21 +334,7 @@ const RoleRequestForm = ({ role, userData, onSubmit, onCancel, isSubmitting }) =
         <p className="text-xs text-gray-500 mt-1">For business communications</p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          <MapPin className="inline w-4 h-4 mr-1" />
-          Service Locations *
-        </label>
-        <input
-          type="text"
-          value={formData.locations.join(', ')}
-          onChange={(e) => handleArrayChange('locations', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-          placeholder="Colombo, Kandy, Galle"
-        />
-        <p className="text-xs text-gray-500 mt-1">Separate locations with commas</p>
-      </div>
+      <LocationsCheckbox />
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">

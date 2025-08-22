@@ -3,12 +3,12 @@ import DataTable from '../components/common/DataTable';
 import Modal from '../components/common/Modal';
 import GuideForm from '../components/forms/GuideForm';
 import GuideView from '../components/views/GuideView';
-import { 
-  getGuides, 
-  getGuideById, 
-  createGuide, 
-  updateGuide, 
-  deleteGuide 
+import {
+  getGuides,
+  getGuideById,
+  createGuide,
+  updateGuide,
+  deleteGuide
 } from '../../services/api';
 
 const ManageGuides = () => {
@@ -51,7 +51,7 @@ const ManageGuides = () => {
 
   const handleView = async (guide) => {
     try {
-      // Fetch full guide details if needed
+      // Fetch full guide details
       const response = await getGuideById(guide.id);
       setModalType('view');
       setSelectedGuide(response.data);
@@ -144,6 +144,7 @@ const ManageGuides = () => {
             guide={selectedGuide}
             onSave={handleSave}
             onCancel={() => setShowModal(false)}
+            isEditing={modalType === 'edit'}
           />
         )}
       </Modal>

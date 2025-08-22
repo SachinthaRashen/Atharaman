@@ -163,8 +163,8 @@ const UserProfile = () => {
           personalNumber: formData.contactNumber.substring(0, 15),
           whatsappNumber: formData.whatsappNumber.substring(0, 15),
           guideImage: formData.guideImage ? [formData.guideImage] : ['default-image.jpg'],
-          languages: formData.languages.slice(0, 10),
-          locations: formData.locations.slice(0, 10),
+          languages: formData.languages,
+          locations: formData.locations,
           description: formData.description.substring(0, 500)
         };
       
@@ -189,9 +189,9 @@ const UserProfile = () => {
           vehicleOwnerName: formData.name.substring(0, 100),
           vehicleOwnerNic: formData.nic.substring(0, 12),
           businessMail: formData.email.substring(0, 100),
-          contactNumber: formData.contactNumber.substring(0, 15),
+          personalNumber: formData.personalNumber.substring(0, 15),
           whatsappNumber: formData.whatsappNumber.substring(0, 15),
-          locations: formData.locations.slice(0, 10),
+          locations: formData.locations,
           description: formData.description.substring(0, 500)
         };
       
