@@ -16,7 +16,7 @@ const RequestButtons = ({
       hoverColor: 'hover:from-green-600 hover:to-green-700'
     },
     { 
-      id: 'hotel-owner', 
+      id: 'hotel_owner', 
       label: 'Hotel Owner', 
       icon: Building,
       description: 'List and manage your accommodation properties',
@@ -24,7 +24,7 @@ const RequestButtons = ({
       hoverColor: 'hover:from-blue-600 hover:to-blue-700'
     },
     { 
-      id: 'shop-owner', 
+      id: 'shop_owner', 
       label: 'Shop Owner', 
       icon: Store,
       description: 'Sell camping gear and outdoor equipment',
@@ -32,7 +32,7 @@ const RequestButtons = ({
       hoverColor: 'hover:from-purple-600 hover:to-purple-700'
     },
     { 
-      id: 'vehicle-owner', 
+      id: 'vehicle_owner', 
       label: 'Vehicle Owner', 
       icon: Car,
       description: 'Rent out vehicles for camping adventures',
@@ -95,7 +95,7 @@ const RequestButtons = ({
               </div>
               
               <button
-                onClick={() => onRoleRequest(role.id)}
+                onClick={() => onRoleRequest(role.id)} // This should pass the role ID
                 disabled={state !== 'available'}
                 className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center text-sm ${
                   state === 'approved'
