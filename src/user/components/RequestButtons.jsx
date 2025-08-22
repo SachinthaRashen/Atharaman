@@ -16,20 +16,20 @@ const RequestButtons = ({
       hoverColor: 'hover:from-green-600 hover:to-green-700'
     },
     { 
+      id: 'shop_owner', 
+      label: 'Shop Owner', 
+      icon: Store,
+      description: 'Sell camping gear and outdoor equipment',
+      color: 'from-red-500 to-red-600',
+      hoverColor: 'hover:from-red-600 hover:to-red-700'
+    },
+    { 
       id: 'hotel_owner', 
       label: 'Hotel Owner', 
       icon: Building,
       description: 'List and manage your accommodation properties',
       color: 'from-blue-500 to-blue-600',
       hoverColor: 'hover:from-blue-600 hover:to-blue-700'
-    },
-    { 
-      id: 'shop_owner', 
-      label: 'Shop Owner', 
-      icon: Store,
-      description: 'Sell camping gear and outdoor equipment',
-      color: 'from-purple-500 to-purple-600',
-      hoverColor: 'hover:from-purple-600 hover:to-purple-700'
     },
     { 
       id: 'vehicle_owner', 

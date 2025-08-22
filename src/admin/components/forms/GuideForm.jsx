@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, X } from 'lucide-react';
+import { getUsers, getLocations } from '../../../services/api';
 
-const GuideForm = ({ guide, onSave, onCancel }) => {
+const GuideForm = ({ guide, onSave, onCancel, isEditing = false }) => {
   const [formData, setFormData] = useState({
     guideName: guide?.guideName || '',
     description: guide?.description || '',
@@ -11,36 +12,79 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
     whatsappNumber: guide?.whatsappNumber || '',
     languages: guide?.languages ? guide.languages : [],
     locations: guide?.locations ? guide.locations : [],
-    user_id: guide?.user_id || '',
+    user_id: guide?.user_id || ''
   });
 
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState(() => {
     if (!guide?.guideImage) return [];
-    
-    // If it's already an array (from backend casting)
+
     if (Array.isArray(guide.guideImage)) {
       return guide.guideImage.map(img => `http://localhost:8000/storage/${img}`);
     }
-    
-    // If it's a string, try to parse it
-    if (typeof guide.guideImage === 'string') {
-      try {
-        const parsed = JSON.parse(guide.guideImage);
-        return Array.isArray(parsed) 
-          ? parsed.map(img => `http://localhost:8000/storage/${img}`)
-          : [];
-      } catch {
-        return [];
-      }
-    }
-    
     return [];
   });
 
+  const [imagesToRemove, setImagesToRemove] = useState([]);
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [availableLocations, setAvailableLocations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [locationError, setLocationError] = useState('');
+
   const availableLanguages = ['English', 'Sinhala', 'Tamil', 'German', 'French', 'Japanese', 'Chinese'];
-  const availableLocations = ['Sigiriya', 'Kandy', 'Colombo', 'Galle', 'Ella', 'Anuradhapura'];
-  const availableUserIds = [1];
+
+  useEffect(() => {
+    if (!isEditing) {
+      fetchUsers();
+    }
+    fetchLocations();
+  }, [isEditing]);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await getUsers();
+
+      if (Array.isArray(response.data)) {
+        setAvailableUsers(response.data);
+      } else {
+        console.error('Unexpected API response structure:', response.data);
+        setError('Unexpected data format from server');
+        setAvailableUsers([]);
+      }
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError('Failed to load users. Please try again.');
+      setAvailableUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLocations = async () => {
+    setLocationLoading(true);
+    setLocationError('');
+    try {
+      const response = await getLocations();
+      
+      if (Array.isArray(response.data)) {
+        setAvailableLocations(response.data);
+      } else {
+        console.error('Unexpected API response structure for locations:', response.data);
+        setLocationError('Unexpected data format from server');
+        setAvailableLocations([]);
+      }
+    } catch (err) {
+      console.error('Error fetching locations:', err);
+      setLocationError('Failed to load locations. Please try again.');
+      setAvailableLocations([]);
+    } finally {
+      setLocationLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -59,12 +103,12 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
     }));
   };
 
-  const handleLocationChange = (location) => {
+  const handleLocationChange = (locationName) => {
     setFormData(prev => ({
       ...prev,
-      locations: prev.locations.includes(location)
-        ? prev.locations.filter(l => l !== location)
-        : [...prev.locations, location]
+      locations: prev.locations.includes(locationName)
+        ? prev.locations.filter(l => l !== locationName)
+        : [...prev.locations, locationName]
     }));
   };
 
@@ -81,25 +125,17 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
   };
 
   const removeImage = (index) => {
-    // Check if it's an existing server image
     const isServerImage = imagePreviews[index].includes('storage');
     
     if (isServerImage) {
-      // For server images, we need to handle this differently
-      // You might want to set a state to track which server images to remove
-      console.log('Server image removal logic needed');
+      const imagePath = imagePreviews[index].replace('http://localhost:8000/storage/', '');
+      setImagesToRemove(prev => [...prev, imagePath]);
+    } else {
+      URL.revokeObjectURL(imagePreviews[index]);
     }
     
-    // Remove from both arrays
     setImages(prev => prev.filter((_, i) => i !== index));
-    setImagePreviews(prev => {
-      const newPreviews = prev.filter((_, i) => i !== index);
-      // Revoke the object URL to prevent memory leaks
-      if (!isServerImage) {
-        URL.revokeObjectURL(prev[index]);
-      }
-      return newPreviews;
-    });
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e) => {
@@ -112,26 +148,31 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
     formDataObj.append('businessMail', formData.businessMail);
     formDataObj.append('personalNumber', formData.personalNumber);
     formDataObj.append('whatsappNumber', formData.whatsappNumber);
-    formDataObj.append('user_id', formData.user_id);
     
-    // Append arrays directly (not stringified)
+    if (!isEditing) {
+      formDataObj.append('user_id', formData.user_id);
+    }
+
     formData.languages.forEach(lang => {
       formDataObj.append('languages[]', lang);
     });
     
-    formData.locations.forEach(loc => {
-      formDataObj.append('locations[]', loc);
-    });
+    // Only append locations if they exist
+    if (formData.locations && formData.locations.length > 0) {
+      formData.locations.forEach(locationName => {
+        formDataObj.append('locations[]', locationName);
+      });
+    }
     
     // Append each image file
     images.forEach(image => {
       formDataObj.append('guideImage[]', image);
     });
 
-    // If editing and no new images selected, ensure existing images are preserved
-    if (guide && images.length === 0 && imagePreviews.some(p => p.includes('storage'))) {
-      formDataObj.append('keepExistingImages', 'true');
-    }
+    // Append images to remove (for server images)
+    imagesToRemove.forEach(imagePath => {
+      formDataObj.append('remove_images[]', imagePath);
+    });
 
     onSave(formDataObj);
   };
@@ -166,6 +207,45 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          User ID {isEditing ? '(Cannot be changed)' : '*'}
+        </label>
+        {isEditing ? (
+          <input
+            type="text"
+            value={formData.user_id}
+            readOnly
+            disabled // Add this for extra protection
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+          />
+        ) : (
+          // Editable dropdown for add mode
+          <>
+            {loading ? (
+              <div className="text-gray-500 text-sm">Loading users...</div>
+            ) : error ? (
+              <div className="text-red-500 text-sm">{error}</div>
+            ) : (
+              <select
+                name="user_id"
+                value={formData.user_id}
+                onChange={handleInputChange}
+                required
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select User</option>
+                {Array.isArray(availableUsers) && availableUsers.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} (ID: {user.id})
+                  </option>
+                ))}
+              </select>
+            )}
+          </>
+        )}
       </div>
 
       {/* Image Upload Section */}
@@ -245,24 +325,6 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            User ID *
-          </label>
-          <select
-            name="user_id"
-            value={formData.user_id}
-            onChange={handleInputChange}
-            required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Select User ID</option>
-            {availableUserIds.map(id => (
-              <option key={id} value={id}>{id}</option>
-            ))}
-          </select>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -289,7 +351,6 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
             name="whatsappNumber"
             value={formData.whatsappNumber}
             onChange={handleInputChange}
-            required
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -318,21 +379,29 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Related Locations
         </label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {availableLocations.map(location => (
-            <label key={location} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.locations.includes(location) || false}
-                onChange={() => handleLocationChange(location)}
-                className="mr-2"
-              />
-              {location}
-            </label>
-          ))}
-        </div>
+        {locationLoading ? (
+          <div className="text-gray-500 text-sm">Loading locations...</div>
+        ) : locationError ? (
+          <div className="text-red-500 text-sm">{locationError}</div>
+        ) : availableLocations.length === 0 ? (
+          <div className="text-gray-500 text-sm">No locations available</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {availableLocations.map(location => (
+              <label key={location.id} className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.locations.includes(location.locationName) || false}
+                  onChange={() => handleLocationChange(location.locationName)}
+                  className="mr-2"
+                />
+                {location.locationName}
+              </label>
+            ))}
+          </div>
+        )}
       </div>
-
+      
       <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
         <button
           type="button"
@@ -345,7 +414,7 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Save
+          {isEditing ? 'Update' : 'Save'}
         </button>
       </div>
     </form>

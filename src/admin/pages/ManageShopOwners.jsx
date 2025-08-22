@@ -34,13 +34,6 @@ const ManageShopOwners = () => {
     fetchShopOwners();
   }, []);
 
-  // Fetch shops when selected owner changes
-  useEffect(() => {
-    if (selectedOwner) {
-      fetchShopsByOwner(selectedOwner.id);
-    }
-  }, [selectedOwner]);
-
   const fetchShopOwners = async () => {
     setLoading(true);
     try {
@@ -52,6 +45,13 @@ const ManageShopOwners = () => {
       setLoading(false);
     }
   };
+
+  // Fetch shops when selected owner changes
+  useEffect(() => {
+    if (selectedOwner) {
+      fetchShopsByOwner(selectedOwner.id);
+    }
+  }, [selectedOwner]);
 
   const fetchShopsByOwner = async (ownerId) => {
     setLoading(true);
@@ -152,7 +152,12 @@ const ManageShopOwners = () => {
         
         setShops(prev => modalType === 'add'
           ? [...prev, response.data.shop]
-          : prev.map(s => s.id === response.data.shop.id ? response.data.shop : s)
+          : prev.map(s => s.id === response.data.shop.id ? {
+              ...response.data.shop,
+              locations: Array.isArray(response.data.shop.locations)
+                ? response.data.shop.locations
+                : []
+            } : s)
         );
         setShowModal(false);
       }
@@ -163,7 +168,6 @@ const ManageShopOwners = () => {
     }
   };
 
-  // Update column definitions to match backend fields
   const ownerColumns = [
     { key: 'shopOwnerName', label: 'Owner Name', sortable: true },
     { key: 'businessMail', label: 'Email', sortable: true },

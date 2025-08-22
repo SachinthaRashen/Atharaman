@@ -58,6 +58,26 @@ export const deleteUser = (id) => api.delete(`/admin/users/${id}`);
 export const sendResetLink = (emailData) => api.post('/forgot-password', emailData);
 export const resetPassword = (resetData) => api.post('/reset-password', resetData);
 
+// Locations API endpoints
+export const getLocations = () => api.get('/locations');
+export const getLocationById = (id) => api.get(`/locations/${id}`);
+export const getLocationsByProvince = (province) => api.get(`/locations/province/${province}`);
+export const createLocation = (formData) => {
+  return api.post('/locations', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+export const updateLocation = (id, formData) => {
+  return api.put(`/locations/${id}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+export const deleteLocation = (id) => api.delete(`/locations/${id}`);
+
 // Guides API endpoints
 export const getGuides = () => api.get('/guides');
 export const getGuideById = (id) => api.get(`/guides/${id}`);
@@ -104,6 +124,61 @@ export const updateShop = (id, formData) => {
   });
 };
 export const deleteShop = (id) => api.delete(`/shops/${id}`);
+
+// Hotel Owners API endpoints
+export const getHotelOwners = () => api.get('/hotel-owners');
+export const getHotelOwnerById = (id) => api.get(`/hotel-owners/${id}`);
+export const createHotelOwner = (formData) => api.post('/hotel-owners', formData);
+export const updateSHotelOwner = (id, formData) => api.put(`/hotel-owners/${id}`, formData);
+export const deleteHotelOwner = (id) => api.delete(`/hotel-owners/${id}`);
+// Hotels API endpoints
+export const getHotels = () => api.get('/hotels');
+export const getHotelById = (id) => api.get(`/hotels/${id}`);
+export const getHotelsByOwner = (ownerId) => api.get(`/hotels?hotel_owner_id=${ownerId}`);
+export const getHotelsByLocation = (location) => api.get(`/hotels/location/${location}`);
+export const createHotel = (formData) => {
+  return api.post('/hotels', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+export const updateHotel = (id, formData) => {
+  return api.put(`/hotels/${id}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+export const deleteHotel = (id) => api.delete(`/hotels/${id}`);
+
+// Vehicle Owners API endpoints
+export const getVehicleOwners = () => api.get('/vehicle-owners');
+export const getVehicleOwnerById = (id) => api.get(`/vehicle-owners/${id}`);
+export const getVehicleOwnersByLocation = (location) => api.get(`/vehicle-owners/location/${location}`);
+export const createVehicleOwner = (formData) => api.post('/vehicle-owners', formData);
+export const updateVehicleOwner = (id, formData) => api.put(`/vehicle-owners/${id}`, formData);
+export const deleteVehicleOwner = (id) => api.delete(`/vehicle-owners/${id}`);
+// Vehicles API endpoints
+export const getVehicles = () => api.get('/vehicles');
+export const getVehicleById = (id) => api.get(`/vehicles/${id}`);
+export const getVehiclesByOwner = (ownerId) => api.get(`/vehicles?vehicle_owner_id=${ownerId}`);
+export const getVehiclesByLocation = (location) => api.get(`/vehicles/location/${location}`);
+export const createVehicle = (formData) => {
+  return api.post('/vehicles', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+export const updateVehicle = (id, formData) => {
+  return api.put(`/vehicles/${id}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+export const deleteVehicle = (id) => api.delete(`/vehicles/${id}`);
 
 // Role request API endpoints
 export const requestRole = (roleData) => api.post('/role-request', roleData);

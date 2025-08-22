@@ -7,14 +7,15 @@ import {
   getUsers,
   registerAdmin,
   updateUser,
-  deleteUser } from '../../services/api';
+  deleteUser
+} from '../../services/api';
 
 const ManageUsers = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('add');
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchUsers();
@@ -28,7 +29,7 @@ const ManageUsers = () => {
       console.error('Error fetching users:', error);
       alert('Failed to fetch users');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -42,7 +43,7 @@ const ManageUsers = () => {
         alert('User updated successfully!');
       }
       setShowModal(false);
-      fetchUsers(); // Refresh the list
+      fetchUsers();
     } catch (error) {
       console.error('Error saving user:', error);
       alert('Failed to save user');
@@ -86,6 +87,8 @@ const ManageUsers = () => {
     setSelectedUser(user);
     setShowModal(true);
   };
+  
+  if (isLoading) return <div>Loading users...</div>;
 
   return (
     <div className="mt-16">

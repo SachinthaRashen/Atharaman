@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, X } from 'lucide-react';
+import { getLocations } from '../../../services/api';
 
 const ShopForm = ({ shop, onSave, onCancel, selectedOwner }) => {
   const [formData, setFormData] = useState({
     shopName: shop?.shopName || '',
     shopAddress: shop?.shopAddress || '',
     description: shop?.description || '',
-    locations: shop?.locations ? JSON.parse(shop.locations) : [],
+    locations: shop?.locations ? shop.locations : [],
     user_id: shop?.user_id || selectedOwner?.user_id || '',
     shop_owner_id: shop?.shop_owner_id || selectedOwner?.id || '',
   });
@@ -14,18 +15,37 @@ const ShopForm = ({ shop, onSave, onCancel, selectedOwner }) => {
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState(() => {
     if (!shop?.shopImage) return [];
-      
-    try {
-      const parsedImages = JSON.parse(shop.shopImage);
-      return Array.isArray(parsedImages) 
-        ? parsedImages.map(img => `http://localhost:8000/storage/${img}`)
-        : [];
-    } catch {
-      return [];
+
+    // If it's already an array (from backend casting)
+    if (Array.isArray(shop.shopImage)) {
+      return shop.shopImage.map(img => `http://localhost:8000/storage/${img}`);
     }
+    return [];
   });
 
-  const availableLocations = ['Sigiriya', 'Kandy', 'Colombo', 'Galle', 'Ella', 'Anuradhapura'];
+  const [availableLocations, setAvailableLocations] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+
+  // Fetch locations from API
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
+  const fetchLocations = async () => {
+    setLoadingLocations(true);
+    try {
+      const response = await getLocations();
+      // Extract location names from the response
+      const locationNames = response.data.map(location => location.name || location.locationName);
+      setAvailableLocations(locationNames);
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+      // Fallback to default locations if API fails
+      setAvailableLocations(['Sigiriya', 'Kandy', 'Colombo', 'Galle', 'Ella', 'Anuradhapura']);
+    } finally {
+      setLoadingLocations(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -206,19 +226,23 @@ const ShopForm = ({ shop, onSave, onCancel, selectedOwner }) => {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Related Locations
         </label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {availableLocations.map(location => (
-            <label key={location} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.locations.includes(location)} // ✅ Changed to 'locations'
-                onChange={() => handleLocationChange(location)}
-                className="mr-2"
-              />
-              {location}
-            </label>
-          ))}
-        </div>
+        {loadingLocations ? (
+          <div className="text-gray-500">Loading locations...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {availableLocations.map(location => (
+              <label key={location} className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.locations.includes(location)}
+                  onChange={() => handleLocationChange(location)}
+                  className="mr-2"
+                />
+                {location}
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
