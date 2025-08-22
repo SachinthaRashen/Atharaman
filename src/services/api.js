@@ -105,4 +105,11 @@ export const updateShop = (id, formData) => {
 };
 export const deleteShop = (id) => api.delete(`/shops/${id}`);
 
+// Role request API endpoints
+export const requestRole = (roleData) => api.post('/role-request', roleData);
+export const getRoleRequests = () => api.get('/user/role-requests');
+export const getAdminRoleRequests = () => api.get('/admin/role-requests');
+export const approveRoleRequest = (id) => api.post(`/admin/role-requests/${id}/approve`);
+export const rejectRoleRequest = (id) => api.post(`/admin/role-requests/${id}/reject`);
+
 export default api;
