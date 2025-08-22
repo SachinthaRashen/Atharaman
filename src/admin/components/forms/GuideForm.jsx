@@ -9,8 +9,8 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
     businessMail: guide?.businessMail || '',
     personalNumber: guide?.personalNumber || '',
     whatsappNumber: guide?.whatsappNumber || '',
-    languages: guide?.languages ? JSON.parse(guide.languages) : [],
-    locations: guide?.locations ? JSON.parse(guide.locations) : [],
+    languages: guide?.languages ? guide.languages : [],
+    locations: guide?.locations ? guide.locations : [],
     user_id: guide?.user_id || '',
   });
 
@@ -18,14 +18,24 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
   const [imagePreviews, setImagePreviews] = useState(() => {
     if (!guide?.guideImage) return [];
     
-    try {
-      const parsedImages = JSON.parse(guide.guideImage);
-      return Array.isArray(parsedImages) 
-        ? parsedImages.map(img => `http://localhost:8000/storage/${img}`)
-        : [];
-    } catch {
-      return [];
+    // If it's already an array (from backend casting)
+    if (Array.isArray(guide.guideImage)) {
+      return guide.guideImage.map(img => `http://localhost:8000/storage/${img}`);
     }
+    
+    // If it's a string, try to parse it
+    if (typeof guide.guideImage === 'string') {
+      try {
+        const parsed = JSON.parse(guide.guideImage);
+        return Array.isArray(parsed) 
+          ? parsed.map(img => `http://localhost:8000/storage/${img}`)
+          : [];
+      } catch {
+        return [];
+      }
+    }
+    
+    return [];
   });
 
   const availableLanguages = ['English', 'Sinhala', 'Tamil', 'German', 'French', 'Japanese', 'Chinese'];
@@ -62,22 +72,34 @@ const GuideForm = ({ guide, onSave, onCancel }) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     
-    const newImages = [...images, ...files];
-    setImages(newImages);
-    
-    // Create preview URLs
+    // Create preview URLs for new files
     const newPreviews = files.map(file => URL.createObjectURL(file));
+    
+    // Update both states
+    setImages(prev => [...prev, ...files]);
     setImagePreviews(prev => [...prev, ...newPreviews]);
   };
 
   const removeImage = (index) => {
-    if (imagePreviews[index].includes('storage')) {
-      // This is an existing image from server
-      // We'll tell backend to remove it by not sending keep_image
-      setKeepExistingImage(false);
+    // Check if it's an existing server image
+    const isServerImage = imagePreviews[index].includes('storage');
+    
+    if (isServerImage) {
+      // For server images, we need to handle this differently
+      // You might want to set a state to track which server images to remove
+      console.log('Server image removal logic needed');
     }
-    setImages([]);
-    setImagePreviews([]);
+    
+    // Remove from both arrays
+    setImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => {
+      const newPreviews = prev.filter((_, i) => i !== index);
+      // Revoke the object URL to prevent memory leaks
+      if (!isServerImage) {
+        URL.revokeObjectURL(prev[index]);
+      }
+      return newPreviews;
+    });
   };
 
   const handleSubmit = (e) => {

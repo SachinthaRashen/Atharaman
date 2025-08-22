@@ -90,10 +90,10 @@ const ManageGuides = () => {
             ...response.data.guide,
             languages: Array.isArray(response.data.guide.languages) 
               ? response.data.guide.languages 
-              : JSON.parse(response.data.guide.languages || '[]'),
+              : [],
             locations: Array.isArray(response.data.guide.locations)
               ? response.data.guide.locations
-              : JSON.parse(response.data.guide.locations || '[]')
+              : []
           } : g)
       );
       setShowModal(false);
