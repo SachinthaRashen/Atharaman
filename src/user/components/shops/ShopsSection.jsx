@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { shops } from '../../data/mockData';
 import SearchAndFilter from '../SearchAndFilter';
 import ShopCard from './ShopCard';
@@ -9,6 +9,10 @@ const ShopsSection = () => {
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [selectedShop, setSelectedShop] = useState(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const shopsPerPage = 6; // how many shops to show per page
+
   const filteredShops = useMemo(() => {
     return shops.filter(shop => {
       const matchesSearch = shop.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -16,6 +20,28 @@ const ShopsSection = () => {
       return matchesSearch && matchesLocation;
     });
   }, [searchTerm, selectedLocation]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredShops.length / shopsPerPage);
+  const startIndex = (currentPage - 1) * shopsPerPage;
+  const currentShops = filteredShops.slice(startIndex, startIndex + shopsPerPage);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedLocation]);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   if (selectedShop) {
     return (
@@ -42,8 +68,9 @@ const ShopsSection = () => {
           placeholder="Search shops by name..."
         />
 
+        {/* Shops Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredShops.map((shop) => (
+          {currentShops.map((shop) => (
             <ShopCard
               key={shop.id}
               shop={shop}
@@ -52,9 +79,50 @@ const ShopsSection = () => {
           ))}
         </div>
 
+        {/* No Results */}
         {filteredShops.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">No shops found matching your criteria.</p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {filteredShops.length > shopsPerPage && (
+          <div className="flex justify-center items-center space-x-4 mt-8">
+            {/* Previous Button */}
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className="px-6 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Previous
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center space-x-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-10 h-10 rounded-lg transition ${
+                    currentPage === page
+                      ? "bg-blue-500 text-white"
+                      : "bg-white border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            {/* Load More */}
+            <button
+              onClick={handleLoadMore}
+              disabled={currentPage === totalPages}
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Load More
+            </button>
           </div>
         )}
       </main>
