@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, Phone, MessageCircle, User } from 'lucide-react';
+import { Mail, Phone, User } from 'lucide-react';
 
 const ShopOwnerView = ({ owner }) => {
   if (!owner) return <div>No shop owner data available</div>;
@@ -9,11 +9,11 @@ const ShopOwnerView = ({ owner }) => {
       <div className="flex items-start space-x-6">
         <img
           src={owner.image || 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg'}
-          alt={owner.shopOwnerName || owner.name}
+          alt={owner.shopOwnerName}
           className="w-32 h-32 object-cover rounded-lg"
         />
         <div className="flex-1">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">{owner.shopOwnerName || owner.name}</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">{owner.shopOwnerName}</h3>
           <div className="flex items-center text-sm text-gray-500">
             <User className="w-4 h-4 mr-1" />
             <span>User ID: {owner.user_id}</span>
@@ -27,7 +27,7 @@ const ShopOwnerView = ({ owner }) => {
           <div className="space-y-3">
             <div className="flex items-center">
               <Mail className="w-4 h-4 mr-3 text-gray-400" />
-              <span className="text-gray-700">{owner.businessMail || owner.businessEmail}</span>
+              <span className="text-gray-700">{owner.businessMail}</span>
             </div>
             <div className="flex items-center">
               <Phone className="w-4 h-4 mr-3 text-gray-400" />
