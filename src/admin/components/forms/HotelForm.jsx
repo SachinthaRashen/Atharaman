@@ -1,17 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Upload, X } from 'lucide-react';
+import { getLocations } from '../../../services/api';
 
-const HotelForm = ({ hotel, onSave, onCancel }) => {
+const HotelForm = ({ hotel, onSave, onCancel, selectedOwner }) => {
   const [formData, setFormData] = useState({
-    name: hotel?.name || '',
-    description: hotel?.description || '',
-    address: hotel?.address || '',
+    hotelName: hotel?.hotelName || '',
+    hotelAddress: hotel?.hotelAddress || '',
+    businessMail: hotel?.businessMail || '',
     contactNumber: hotel?.contactNumber || '',
-    relatedLocations: hotel?.relatedLocations || [],
-    mainImage: hotel?.mainImage || '',
-    images: hotel?.images || []
+    whatsappNumber: hotel?.whatsappNumber || '',
+    description: hotel?.description || '',
+    locations: hotel?.locations ? hotel.locations : [],
+    user_id: hotel?.user_id || selectedOwner?.user_id || '',
+    hotel_owner_id: hotel?.hotel_owner_id || selectedOwner?.id || '',
   });
 
-  const availableLocations = ['Sigiriya', 'Kandy', 'Colombo', 'Galle', 'Ella', 'Anuradhapura'];
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState(() => {
+    if (!hotel?.hotelImage) return [];
+
+    // If it's already an array (from backend casting)
+    if (Array.isArray(hotel.hotelImage)) {
+      return hotel.hotelImage.map(img => `http://localhost:8000/storage/${img}`);
+    }
+    return [];
+  });
+
+  const [availableLocations, setAvailableLocations] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+
+  // Fetch locations from API
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
+  const fetchLocations = async () => {
+    setLoadingLocations(true);
+    try {
+      const response = await getLocations();
+      // Extract location names from the response
+      const locationNames = response.data.map(location => location.name || location.locationName);
+      setAvailableLocations(locationNames);
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+    } finally {
+      setLoadingLocations(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -24,15 +59,79 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   const handleLocationChange = (location) => {
     setFormData(prev => ({
       ...prev,
-      relatedLocations: prev.relatedLocations.includes(location)
-        ? prev.relatedLocations.filter(l => l !== location)
-        : [...prev.relatedLocations, location]
+      locations: prev.locations.includes(location)
+        ? prev.locations.filter(l => l !== location)
+        : [...prev.locations, location]
     }));
+  };
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    // Filter only valid image files
+    const validImageFiles = files.filter(file => 
+      file.type.startsWith('image/') && 
+      ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'].includes(file.type)
+    );
+    
+    const newImages = [...images, ...validImageFiles];
+    setImages(newImages);
+    
+    // Create preview URLs only for valid images
+    const newPreviews = validImageFiles.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  const removeImage = (index) => {
+    const newImages = [...images];
+    const newPreviews = [...imagePreviews];
+    
+    // Revoke the object URL to prevent memory leaks
+    if (newPreviews[index].startsWith('blob:')) {
+      URL.revokeObjectURL(newPreviews[index]);
+    }
+    
+    newImages.splice(index, 1);
+    newPreviews.splice(index, 1);
+    
+    setImages(newImages);
+    setImagePreviews(newPreviews);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+
+    const formDataObj = new FormData();
+    formDataObj.append('hotelName', formData.hotelName);
+    formDataObj.append('hotelAddress', formData.hotelAddress);
+    formDataObj.append('businessMail', formData.businessMail);
+    formDataObj.append('contactNumber', formData.contactNumber);
+    formDataObj.append('whatsappNumber', formData.whatsappNumber);
+    formDataObj.append('description', formData.description);
+    formDataObj.append('user_id', formData.user_id);
+    formDataObj.append('hotel_owner_id', formData.hotel_owner_id);
+    
+    // Only append locations if they exist
+    if (formData.locations && formData.locations.length > 0) {
+      formData.locations.forEach(loc => {
+        formDataObj.append('locations[]', loc);
+      });
+    }
+
+    // Only append images if they exist and are valid
+    if (images.length > 0) {
+      images.forEach(image => {
+        if (image instanceof File && image.type.startsWith('image/')) {
+          formDataObj.append('hotelImage[]', image);
+        }
+      });
+    } else if (hotel && imagePreviews.some(p => p.includes('storage'))) {
+      // For editing: if no new images but existing ones, tell backend to keep them
+      formDataObj.append('keepExistingImages', 'true');
+    }
+    
+    onSave(formDataObj);
   };
 
   return (
@@ -43,26 +142,61 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         </label>
         <input
           type="text"
-          name="name"
-          value={formData.name}
+          name="hotelName"
+          value={formData.hotelName}
           onChange={handleInputChange}
           required
           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
+      {/* Image Upload Section */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Main Image URL *
+          Hotel Images
         </label>
-        <input
-          type="url"
-          name="mainImage"
-          value={formData.mainImage}
-          onChange={handleInputChange}
-          required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+        
+        {/* Image Previews */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          {imagePreviews.map((preview, index) => (
+            <div key={index} className="relative h-32 w-32">
+              <img
+                src={preview}
+                alt={`Preview ${index}`}
+                className="h-full w-full object-cover rounded-lg"
+                onError={(e) => {
+                  e.target.src = '/placeholder-image.jpg'; // Fallback image
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+              >
+                <X className="w-4 h-4 text-gray-700" />
+              </button>
+            </div>
+          ))}
+        </div>
+        
+        {/* Upload Button */}
+        <div className="flex flex-col">
+          <label 
+            htmlFor="fileInput"
+            className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors w-40"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            <span className="text-sm">Upload Images</span>
+          </label>
+          <input
+            type="file"
+            id="fileInput"
+            onChange={handleImageChange}
+            accept="image/*"
+            multiple
+            className="hidden"
+          />
+        </div>
       </div>
 
       <div>
@@ -85,45 +219,80 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         </label>
         <input
           type="text"
-          name="address"
-          value={formData.address}
+          name="hotelAddress"
+          value={formData.hotelAddress}
           onChange={handleInputChange}
           required
           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Contact Number *
-        </label>
-        <input
-          type="tel"
-          name="contactNumber"
-          value={formData.contactNumber}
-          onChange={handleInputChange}
-          required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Business Email *
+          </label>
+          <input
+            type="email"
+            name="businessMail"
+            value={formData.businessMail}
+            onChange={handleInputChange}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Contact Number *
+          </label>
+          <input
+            type="tel"
+            name="contactNumber"
+            value={formData.contactNumber}
+            onChange={handleInputChange}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            WhatsApp Number *
+          </label>
+          <input
+            type="tel"
+            name="whatsappNumber"
+            value={formData.whatsappNumber}
+            onChange={handleInputChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Related Locations
         </label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {availableLocations.map(location => (
-            <label key={location} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.relatedLocations.includes(location)}
-                onChange={() => handleLocationChange(location)}
-                className="mr-2"
-              />
-              {location}
-            </label>
-          ))}
-        </div>
+        {loadingLocations ? (
+          <div className="text-gray-500">Loading locations...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {availableLocations.map(location => (
+              <label key={location} className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.locations.includes(location)}
+                  onChange={() => handleLocationChange(location)}
+                  className="mr-2"
+                />
+                {location}
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">

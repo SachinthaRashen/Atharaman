@@ -40,8 +40,6 @@ const ShopForm = ({ shop, onSave, onCancel, selectedOwner }) => {
       setAvailableLocations(locationNames);
     } catch (error) {
       console.error('Error fetching locations:', error);
-      // Fallback to default locations if API fails
-      setAvailableLocations(['Sigiriya', 'Kandy', 'Colombo', 'Galle', 'Ella', 'Anuradhapura']);
     } finally {
       setLoadingLocations(false);
     }
