@@ -129,7 +129,7 @@ export const deleteShop = (id) => api.delete(`/shops/${id}`);
 export const getHotelOwners = () => api.get('/hotel-owners');
 export const getHotelOwnerById = (id) => api.get(`/hotel-owners/${id}`);
 export const createHotelOwner = (formData) => api.post('/hotel-owners', formData);
-export const updateSHotelOwner = (id, formData) => api.put(`/hotel-owners/${id}`, formData);
+export const updateHotelOwner = (id, formData) => api.put(`/hotel-owners/${id}`, formData);
 export const deleteHotelOwner = (id) => api.delete(`/hotel-owners/${id}`);
 // Hotels API endpoints
 export const getHotels = () => api.get('/hotels');

@@ -25,14 +25,9 @@ const ShopOwnerForm = ({ owner, onSave, onCancel, isEditing = false }) => {
     setError('');
     try {
       const response = await getUsers();
-      
-      // Handle different response structures
+
       if (Array.isArray(response.data)) {
         setAvailableUsers(response.data);
-      } else if (response.data && Array.isArray(response.data.users)) {
-        setAvailableUsers(response.data.users);
-      } else if (response.data && Array.isArray(response.data.data)) {
-        setAvailableUsers(response.data.data);
       } else {
         console.error('Unexpected API response structure:', response.data);
         setError('Unexpected data format from server');
