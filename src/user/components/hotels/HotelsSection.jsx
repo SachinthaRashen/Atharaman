@@ -1,25 +1,35 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { hotels } from '../../data/mockData';
 import SearchAndFilter from '../SearchAndFilter';
 import HotelCard from './HotelCard';
 import HotelDetail from './HotelDetail';
+import axios from 'axios';
+import Navbar from '../Navbar';
 
 export const HotelsSection = () => {
+  const [hotels, setHotels] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [selectedHotel, setSelectedHotel] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
     const hotelsPerPage = 3; // adjust as needed
+
+  // Fetch data (replace with actual API call if needed)
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/all_hotels')
+      .then((response) => setHotels(response.data))
+      .catch((error) => console.error('Error fetching hotels:', error));
+  }, []);
 
   const filteredHotels = useMemo(() => {
     return hotels.filter(hotel => {
-      const matchesSearch = hotel.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = hotel.hotelName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
       const matchesLocation = selectedLocation === 'All Locations' || hotel.location === selectedLocation;
       return matchesSearch && matchesLocation;
     });
-  }, [searchTerm, selectedLocation]);
+  }, [searchTerm, selectedLocation, hotels]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredHotels.length / hotelsPerPage);
@@ -51,9 +61,22 @@ export const HotelsSection = () => {
       />
     );
   }
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbarHeight = 64; // Match your navbar height
+      const elementPosition =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   return (
     <div className="min-h-dvh bg-gray-50">
+      <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Accommodation</h2>
