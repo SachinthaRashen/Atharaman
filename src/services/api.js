@@ -107,7 +107,7 @@ export const deleteShopOwner = (id) => api.delete(`/shop-owners/${id}`);
 // Shops API endpoints
 export const getShops = () => api.get('/shops');
 export const getShopById = (id) => api.get(`/shops/${id}`);
-export const getShopsByOwner = (ownerId) => api.get(`/shops?shop_owner_id=${ownerId}`);
+export const getShopsByOwner = (ownerId) => api.get(`/shop-owners/${ownerId}/shops`);
 export const getShopsByLocation = (location) => api.get(`/shops/location/${location}`);
 export const createShop = (formData) => {
   return api.post('/shops', formData, {
@@ -134,7 +134,7 @@ export const deleteHotelOwner = (id) => api.delete(`/hotel-owners/${id}`);
 // Hotels API endpoints
 export const getHotels = () => api.get('/hotels');
 export const getHotelById = (id) => api.get(`/hotels/${id}`);
-export const getHotelsByOwner = (ownerId) => api.get(`/hotels?hotel_owner_id=${ownerId}`);
+export const getHotelsByOwner = (ownerId) => api.get(`/hotel-owners/${ownerId}/hotels`);
 export const getHotelsByLocation = (location) => api.get(`/hotels/location/${location}`);
 export const createHotel = (formData) => {
   return api.post('/hotels', formData, {
@@ -162,7 +162,7 @@ export const deleteVehicleOwner = (id) => api.delete(`/vehicle-owners/${id}`);
 // Vehicles API endpoints
 export const getVehicles = () => api.get('/vehicles');
 export const getVehicleById = (id) => api.get(`/vehicles/${id}`);
-export const getVehiclesByOwner = (ownerId) => api.get(`/vehicles?vehicle_owner_id=${ownerId}`);
+export const getVehiclesByOwner = (ownerId) => api.get(`/vehicle-owners/${ownerId}/vehicles`);
 export const getVehiclesByLocation = (location) => api.get(`/vehicles/location/${location}`);
 export const createVehicle = (formData) => {
   return api.post('/vehicles', formData, {
