@@ -21,7 +21,7 @@ export const GuideCard = ({ guide, onClick }) => {
       
       <div className="p-4">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">{guide.guideName}</h3>
-        <p className="text-gray-600 mb-3 line-clamp-2">{guide.description}</p>
+        {/* <p className="text-gray-600 mb-3 line-clamp-2">{guide.description}</p> */}
         
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center gap-1">

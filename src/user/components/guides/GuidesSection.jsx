@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import axios from 'axios';
-import { guides } from '../../data/mockData';
 import SearchAndFilter from '../SearchAndFilter';
 import GuideCard from './GuideCard';
 import GuideDetail from './GuideDetail';
@@ -11,35 +10,38 @@ export const GuidesSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [selectedGuide, setSelectedGuide] = useState(null);
-
-  useEffect(() => {
-    axios.get('http://localhost:8000/api/all_guides')
-      .then(response => setGuides(response.data))
-      .catch(error => console.error("Error fetching guides:", error));
-  }, []);
-
-  // const filteredGuides = useMemo(() => {
-  //   return guides.filter(guide => {
-  //     const matchesSearch = guide.guideName.toLowerCase().includes(searchTerm.toLowerCase());
-  //     const matchesLocation = selectedLocation === 'All Locations' || 
-  //                             (guide.locations && guide.locations.includes(selectedLocation));
-  // // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+
   const guidesPerPage = 3; // adjust as needed
 
+  // Fetch data
+  useEffect(() => {
+    axios
+      .get('http://localhost:8000/api/all_guides')
+      .then((response) => setGuides(response.data))
+      .catch((error) => console.error('Error fetching guides:', error));
+  }, []);
+
+  // Filtering
   const filteredGuides = useMemo(() => {
-    return guides.filter(guide => {
-      const matchesSearch = guide.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return guides.filter((guide) => {
+      const matchesSearch = guide.guideName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
       const matchesLocation =
-        selectedLocation === 'All Locations' || guide.location === selectedLocation;
+        selectedLocation === 'All Locations' ||
+        (guide.locations && guide.locations.includes(selectedLocation));
       return matchesSearch && matchesLocation;
     });
   }, [searchTerm, selectedLocation, guides]);
 
-  // Pagination calculations
+  // Pagination
   const totalPages = Math.ceil(filteredGuides.length / guidesPerPage);
   const startIndex = (currentPage - 1) * guidesPerPage;
-  const currentGuides = filteredGuides.slice(startIndex, startIndex + guidesPerPage);
+  const currentGuides = filteredGuides.slice(
+    startIndex,
+    startIndex + guidesPerPage
+  );
 
   // Reset page when filters change
   useEffect(() => {
@@ -48,29 +50,31 @@ export const GuidesSection = () => {
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      setCurrentPage((prev) => prev - 1);
     }
   };
 
   const handleLoadMore = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+      setCurrentPage((prev) => prev + 1);
     }
   };
 
   if (selectedGuide) {
-    return <GuideDetail guide={selectedGuide} onBack={() => setSelectedGuide(null)} />;
+    return (
+      <GuideDetail guide={selectedGuide} onBack={() => setSelectedGuide(null)} />
+    );
   }
 
-  
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
       const navbarHeight = 64; // Match your navbar height
-      const elementPosition = element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+      const elementPosition =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
       window.scrollTo({
         top: elementPosition,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
@@ -80,7 +84,9 @@ export const GuidesSection = () => {
       <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Professional Guides</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Professional Guides
+          </h2>
           <p className="text-gray-600">
             Connect with experienced guides for your next adventure
           </p>
