@@ -88,9 +88,7 @@ const ManageLocations = () => {
         const response = await createLocation(formData);
         setLocations([...locations, response.data.location]);
       } else if (modalType === 'edit') {
-        console.log('Editing location ID:', selectedLocation.id);
         const response = await updateLocation(selectedLocation.id, formData);
-        console.log('Update response:', response);
         
         if (response.status === 200) {
           setLocations(locations.map(l => 

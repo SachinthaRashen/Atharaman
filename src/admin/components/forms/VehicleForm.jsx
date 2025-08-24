@@ -1,47 +1,162 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Upload, X } from 'lucide-react';
+import { getLocations } from '../../../services/api';
 
-const VehicleForm = ({ vehicle, onSave, onCancel }) => {
+const VehicleForm = ({ vehicle, onSave, onCancel, selectedOwner }) => {
   const [formData, setFormData] = useState({
+    vehicleName: vehicle?.vehicleName || '',
     vehicleType: vehicle?.vehicleType || '',
+    vehicleNumber: vehicle?.vehicleNumber || '',
+    pricePerDay: vehicle?.pricePerDay || '',
+    mileagePerDay: vehicle?.mileagePerDay || '',
+    fuelType: vehicle?.fuelType || '',
+    withDriver: vehicle?.withDriver || '',
     description: vehicle?.description || '',
-    passengers: vehicle?.passengers || 1,
-    contactNumber: vehicle?.contactNumber || '',
-    pricePerDay: vehicle?.pricePerDay || 0,
-    mileagePerDay: vehicle?.mileagePerDay || 0,
-    withDriver: vehicle?.withDriver || false,
-    withoutDriver: vehicle?.withoutDriver || false,
-    relatedLocations: vehicle?.relatedLocations || [],
-    mainImage: vehicle?.mainImage || '',
-    images: vehicle?.images || []
+    locations: vehicle?.locations ? vehicle.locations : [],
+    user_id: vehicle?.user_id || selectedOwner?.user_id || '',
+    vehicle_owner_id: vehicle?.vehicle_owner_id || selectedOwner?.id || '',
   });
 
-  const vehicleTypes = ['Car', 'Van', 'Bus', 'Motorbike', 'Tuk-tuk', 'Jeep'];
-  const availableLocations = ['Sigiriya', 'Kandy', 'Colombo', 'Galle', 'Ella', 'Anuradhapura'];
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState(() => {
+    if (!vehicle?.vehicleImage) return [];
+
+    // If it's already an array (from backend casting)
+    if (Array.isArray(vehicle.vehicleImage)) {
+      return vehicle.vehicleImage.map(img => `http://localhost:8000/storage/${img}`);
+    }
+    return [];
+  });
+
+  const vehicleTypes = ['Car', 'Van', 'SUV', 'Jeep', 'Motorbike', 'Scooty', 'Tuk-tuk', 'Cab', 'Truck', 'Bus', 'Lorry', 'Footcycle'];
+  const fuelTypes = ['Petrol', 'Diesel', 'Electric', 'Petrol Hybrid', 'Diesel Hybrid', 'None'];
+  const driverStatus = ['With/Without Driver', 'Only With Driver', 'Only Without Driver'];
+  const [availableLocations, setAvailableLocations] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+
+  // Fetch locations from API
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
+  const fetchLocations = async () => {
+    setLoadingLocations(true);
+    try {
+      const response = await getLocations();
+      // Extract location names from the response
+      const locationNames = response.data.map(location => location.name || location.locationName);
+      setAvailableLocations(locationNames);
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+    } finally {
+      setLoadingLocations(false);
+    }
+  };
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value
+      [name]: value
     }));
   };
 
   const handleLocationChange = (location) => {
     setFormData(prev => ({
       ...prev,
-      relatedLocations: prev.relatedLocations.includes(location)
-        ? prev.relatedLocations.filter(l => l !== location)
-        : [...prev.relatedLocations, location]
+      locations: prev.locations.includes(location)
+        ? prev.locations.filter(l => l !== location)
+        : [...prev.locations, location]
     }));
+  };
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    // Filter only valid image files
+    const validImageFiles = files.filter(file => 
+      file.type.startsWith('image/') && 
+      ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'].includes(file.type)
+    );
+    
+    const newImages = [...images, ...validImageFiles];
+    setImages(newImages);
+    
+    // Create preview URLs only for valid images
+    const newPreviews = validImageFiles.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  const removeImage = (index) => {
+    const newImages = [...images];
+    const newPreviews = [...imagePreviews];
+    
+    // Revoke the object URL to prevent memory leaks
+    if (newPreviews[index].startsWith('blob:')) {
+      URL.revokeObjectURL(newPreviews[index]);
+    }
+    
+    newImages.splice(index, 1);
+    newPreviews.splice(index, 1);
+    
+    setImages(newImages);
+    setImagePreviews(newPreviews);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+
+    const formDataObj = new FormData();
+    formDataObj.append('vehicleName', formData.vehicleName);
+    formDataObj.append('vehicleType', formData.vehicleType);
+    formDataObj.append('vehicleNumber', formData.vehicleNumber);
+    formDataObj.append('pricePerDay', formData.pricePerDay);
+    formDataObj.append('mileagePerDay', formData.mileagePerDay);
+    formDataObj.append('fuelType', formData.fuelType);
+    formDataObj.append('withDriver', formData.withDriver);
+    formDataObj.append('description', formData.description);
+    formDataObj.append('user_id', formData.user_id);
+    formDataObj.append('vehicle_owner_id', formData.vehicle_owner_id);
+    
+    // Only append locations if they exist
+    if (formData.locations && formData.locations.length > 0) {
+      formData.locations.forEach(loc => {
+        formDataObj.append('locations[]', loc);
+      });
+    }
+
+    // Only append images if they exist and are valid
+    if (images.length > 0) {
+      images.forEach(image => {
+        if (image instanceof File && image.type.startsWith('image/')) {
+          formDataObj.append('vehicleImage[]', image);
+        }
+      });
+    } else if (vehicle && imagePreviews.some(p => p.includes('storage'))) {
+      // For editing: if no new images but existing ones, tell backend to keep them
+      formDataObj.append('keepExistingImages', 'true');
+    }
+    
+    onSave(formDataObj);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Make & Model *
+        </label>
+        <input
+          type="text"
+          name="vehicleName"
+          value={formData.vehicleName}
+          onChange={handleInputChange}
+          required
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -63,32 +178,66 @@ const VehicleForm = ({ vehicle, onSave, onCancel }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Number of Passengers *
+            Reg No *
           </label>
           <input
-            type="number"
-            name="passengers"
-            value={formData.passengers}
+            type="text"
+            name="vehicleNumber"
+            value={formData.vehicleNumber}
             onChange={handleInputChange}
             required
-            min="1"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
       </div>
 
+      {/* Image Upload Section */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Main Image URL *
+          Vehicle Images
         </label>
-        <input
-          type="url"
-          name="mainImage"
-          value={formData.mainImage}
-          onChange={handleInputChange}
-          required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+        
+        {/* Image Previews */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          {imagePreviews.map((preview, index) => (
+            <div key={index} className="relative h-32 w-32">
+              <img
+                src={preview}
+                alt={`Preview ${index}`}
+                className="h-full w-full object-cover rounded-lg"
+                onError={(e) => {
+                  e.target.src = '/placeholder-image.jpg'; // Fallback image
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+              >
+                <X className="w-4 h-4 text-gray-700" />
+              </button>
+            </div>
+          ))}
+        </div>
+        
+        {/* Upload Button */}
+        <div className="flex flex-col">
+          <label 
+            htmlFor="fileInput"
+            className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors w-40"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            <span className="text-sm">Upload Images</span>
+          </label>
+          <input
+            type="file"
+            id="fileInput"
+            onChange={handleImageChange}
+            accept="image/*"
+            multiple
+            className="hidden"
+          />
+        </div>
       </div>
 
       <div>
@@ -111,12 +260,11 @@ const VehicleForm = ({ vehicle, onSave, onCancel }) => {
             Price Per Day (Rs.) *
           </label>
           <input
-            type="number"
+            type="text"
             name="pricePerDay"
             value={formData.pricePerDay}
             onChange={handleInputChange}
             required
-            min="0"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -126,24 +274,9 @@ const VehicleForm = ({ vehicle, onSave, onCancel }) => {
             Mileage Per Day (km) *
           </label>
           <input
-            type="number"
+            type="text"
             name="mileagePerDay"
             value={formData.mileagePerDay}
-            onChange={handleInputChange}
-            required
-            min="0"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Contact Number *
-          </label>
-          <input
-            type="tel"
-            name="contactNumber"
-            value={formData.contactNumber}
             onChange={handleInputChange}
             required
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -151,31 +284,41 @@ const VehicleForm = ({ vehicle, onSave, onCancel }) => {
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Driver Options *
-        </label>
-        <div className="flex space-x-6">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              name="withDriver"
-              checked={formData.withDriver}
-              onChange={handleInputChange}
-              className="mr-2"
-            />
-            With Driver
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Fuel Type *
           </label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              name="withoutDriver"
-              checked={formData.withoutDriver}
-              onChange={handleInputChange}
-              className="mr-2"
-            />
-            Without Driver
+          <select
+            name="fuelType"
+            value={formData.fuelType}
+            onChange={handleInputChange}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Fuel Type</option>
+            {fuelTypes.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Driver Status *
           </label>
+          <select
+            name="withDriver"
+            value={formData.withDriver}
+            onChange={handleInputChange}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Driver Status</option>
+            {driverStatus.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -183,19 +326,23 @@ const VehicleForm = ({ vehicle, onSave, onCancel }) => {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Related Locations
         </label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {availableLocations.map(location => (
-            <label key={location} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.relatedLocations.includes(location)}
-                onChange={() => handleLocationChange(location)}
-                className="mr-2"
-              />
-              {location}
-            </label>
-          ))}
-        </div>
+        {loadingLocations ? (
+          <div className="text-gray-500">Loading locations...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {availableLocations.map(location => (
+              <label key={location} className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.locations.includes(location)}
+                  onChange={() => handleLocationChange(location)}
+                  className="mr-2"
+                />
+                {location}
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
