@@ -31,99 +31,72 @@ api.interceptors.response.use(
   }
 );
 
-// Auth API endpoints
+// Public (no auth required) APIs
 export const registerUser = (userData) => api.post('/register', userData);
 export const loginUser = (credentials) => api.post('/login', credentials);
-export const getProfile = () => api.get('/user/profile');
-export const logoutUser = () => api.post('/logout');
-export const getUsers = () => api.get('/users');
-// Admin Registration & Management
-export const registerAdmin = (adminData) => {
-  return api.post('/admin/users', adminData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
-export const updateUser = (id, userData) => {
-  return api.put(`/admin/users/${id}`, userData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
-export const deleteUser = (id) => api.delete(`/admin/users/${id}`);
-
-// Password reset endpoints
+// Password reset APIs
 export const sendResetLink = (emailData) => api.post('/forgot-password', emailData);
 export const resetPassword = (resetData) => api.post('/reset-password', resetData);
 
-// Locations API endpoints
+// Authenticated routes (any logged-in user/admin)
+export const getProfile = () => api.get('/user/profile');
+export const logoutUser = () => api.post('/logout');
+
+// Admin only APIs
+export const getUsers = () => api.get('/users');
+// User registration & management (Admin only)
+export const registerAdmin = (adminData) => {
+  return api.post('/admin/users', adminData, {headers: {'Content-Type': 'multipart/form-data'}});
+};
+export const updateUser = (id, userData) => {
+  return api.put(`/admin/users/${id}`, userData, {headers: {'Content-Type': 'multipart/form-data'}});
+};
+export const deleteUser = (id) => api.delete(`/admin/users/${id}`);
+
+// Public location APIs
 export const getLocations = () => api.get('/locations');
 export const getLocationById = (id) => api.get(`/locations/${id}`);
 export const getLocationsByProvince = (province) => api.get(`/locations/province/${province}`);
-export const createLocation = (formData) => {
-  return api.post('/locations', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
-export const updateLocation = (id, formData) => {
-  return api.put(`/locations/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
+// Admin location APIs
+export const createLocation = (formData) => {return api.post('/locations', formData, {headers: {'Content-Type': 'multipart/form-data'}});};
+export const updateLocation = (id, formData) => {return api.put(`/locations/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});};
 export const deleteLocation = (id) => api.delete(`/locations/${id}`);
 
-// Guides API endpoints
+// Public Guide APIs
 export const getGuides = () => api.get('/guides');
 export const getGuideById = (id) => api.get(`/guides/${id}`);
 export const getGuidesByLocation = (location) => api.get(`/guides/location/${location}`);
-export const createGuide = (formData) => {
-  return api.post('/guides', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
-export const updateGuide = (id, formData) => {
-  return api.put(`/guides/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
+// Admin guide APIs
+export const createGuide = (formData) => {return api.post('/guides', formData, {headers: {'Content-Type': 'multipart/form-data'}});};
+export const updateGuide = (id, formData) => {return api.put(`/guides/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});};
 export const deleteGuide = (id) => api.delete(`/guides/${id}`);
 
-// Shop Owners API endpoints
+// Public shop owner APIs
 export const getShopOwners = () => api.get('/shop-owners');
 export const getShopOwnerById = (id) => api.get(`/shop-owners/${id}`);
-export const createShopOwner = (formData) => api.post('/shop-owners', formData);
-export const updateShopOwner = (id, formData) => api.put(`/shop-owners/${id}`, formData);
-export const deleteShopOwner = (id) => api.delete(`/shop-owners/${id}`);
-// Shops API endpoints
+// Public shop APIs
 export const getShops = () => api.get('/shops');
 export const getShopById = (id) => api.get(`/shops/${id}`);
 export const getShopsByOwner = (ownerId) => api.get(`/shop-owners/${ownerId}/shops`);
 export const getShopsByLocation = (location) => api.get(`/shops/location/${location}`);
-export const createShop = (formData) => {
-  return api.post('/shops', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
-export const updateShop = (id, formData) => {
-  return api.put(`/shops/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
+// User shop owner APIs
+export const getMyShopOwner = () => api.get('/my-shop-owner');
+export const updateMyShopOwner = (data) => api.put('/my-shop-owner', data);
+export const deleteMyShopOwner = () => api.delete('/my-shop-owner');
+// User shop APIs
+export const getMyShops = () => api.get('/my-shops');
+export const createMyShop = (formData) => api.post('/my-shops', formData, {headers: {'Content-Type': 'multipart/form-data'}});
+export const updateMyShop = (id, formData) => api.put(`/my-shops/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});
+export const deleteMyShop = (id) => api.delete(`/my-shops/${id}`);
+// Admin shop Owner APIs
+export const createShopOwner = (formData) => api.post('/shop-owners', formData);
+export const updateShopOwner = (id, formData) => api.put(`/shop-owners/${id}`, formData);
+export const deleteShopOwner = (id) => api.delete(`/shop-owners/${id}`);
+// Admin shop APIs
+export const createShop = (formData) => {return api.post('/shops', formData, {headers: {'Content-Type': 'multipart/form-data'}});};
+export const updateShop = (id, formData) => {return api.put(`/shops/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});};
 export const deleteShop = (id) => api.delete(`/shops/${id}`);
+
 
 // Hotel Owners API endpoints
 export const getHotelOwners = () => api.get('/hotel-owners');

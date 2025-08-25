@@ -21,7 +21,12 @@ const UserProfile = () => {
     pendingRequests: []
   });
 
-  const [expandedSections, setExpandedSections] = useState({});
+  const [expandedSections, setExpandedSections] = useState({
+    guide: false,
+    shopOwner: false,
+    hotelOwner: false,
+    vehicleOwner: false
+  });
   const [loading, setLoading] = useState(true);
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
@@ -265,18 +270,18 @@ const UserProfile = () => {
           />
         )}
 
-        {profile.approvedRoles.includes('hotel_owner') && (
-          <HotelOwnerProfile
-            isExpanded={expandedSections.hotelOwner}
-            onToggleExpand={() => toggleSection('hotelOwner')}
-            userId={profile.userData.id}
-          />
-        )}
-
         {profile.approvedRoles.includes('shop_owner') && (
           <ShopOwnerProfile
             isExpanded={expandedSections.shopOwner}
             onToggleExpand={() => toggleSection('shopOwner')}
+            userId={profile.userData.id}
+          />
+        )}
+
+        {profile.approvedRoles.includes('hotel_owner') && (
+          <HotelOwnerProfile
+            isExpanded={expandedSections.hotelOwner}
+            onToggleExpand={() => toggleSection('hotelOwner')}
             userId={profile.userData.id}
           />
         )}
