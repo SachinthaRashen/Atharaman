@@ -35,7 +35,7 @@ export const LocationsPage = () => {
   const currentLocations = filteredLocations.slice(startIndex, startIndex + locationsPerPage);
 
   const handleLocationClick = (locationId) => {
-    navigate(`/location/${locationId}`);
+    navigate(`/locations/${locationId}`);
   };
 
   const handleLoadMore = () => {
