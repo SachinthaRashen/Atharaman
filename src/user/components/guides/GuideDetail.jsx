@@ -1,10 +1,27 @@
 import React from 'react';
 import { ArrowLeft, MapPin, Star, Clock, Mail, Phone, PhoneCallIcon } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa6';
+import Navbar from '../Navbar';
+
+
 
 const GuideDetail = ({ guide, onBack }) => {
+  const scrollToSection = (sectionId) => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const navbarHeight = 64; // Match your navbar height
+        const elementPosition =
+          element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+        window.scrollTo({
+          top: elementPosition,
+          behavior: 'smooth',
+        });
+      }
+    };
+  
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           
