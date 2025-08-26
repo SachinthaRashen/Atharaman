@@ -66,6 +66,10 @@ export const deleteLocation = (id) => api.delete(`/locations/${id}`);
 export const getGuides = () => api.get('/guides');
 export const getGuideById = (id) => api.get(`/guides/${id}`);
 export const getGuidesByLocation = (location) => api.get(`/guides/location/${location}`);
+// User guide APIs
+export const getMyGuide = () => api.get('/my-guide');
+export const updateMyGuide = (data) => api.put('/my-guide', data);
+export const deleteMyGuide = () => api.delete('/my-guide');
 // Admin guide APIs
 export const createGuide = (formData) => {return api.post('/guides', formData, {headers: {'Content-Type': 'multipart/form-data'}});};
 export const updateGuide = (id, formData) => {return api.put(`/guides/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});};
@@ -97,60 +101,57 @@ export const createShop = (formData) => {return api.post('/shops', formData, {he
 export const updateShop = (id, formData) => {return api.put(`/shops/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});};
 export const deleteShop = (id) => api.delete(`/shops/${id}`);
 
-
-// Hotel Owners API endpoints
+// Public hotel owner APIs
 export const getHotelOwners = () => api.get('/hotel-owners');
 export const getHotelOwnerById = (id) => api.get(`/hotel-owners/${id}`);
-export const createHotelOwner = (formData) => api.post('/hotel-owners', formData);
-export const updateHotelOwner = (id, formData) => api.put(`/hotel-owners/${id}`, formData);
-export const deleteHotelOwner = (id) => api.delete(`/hotel-owners/${id}`);
-// Hotels API endpoints
+// Public hotel APIs
 export const getHotels = () => api.get('/hotels');
 export const getHotelById = (id) => api.get(`/hotels/${id}`);
 export const getHotelsByOwner = (ownerId) => api.get(`/hotel-owners/${ownerId}/hotels`);
 export const getHotelsByLocation = (location) => api.get(`/hotels/location/${location}`);
-export const createHotel = (formData) => {
-  return api.post('/hotels', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
-export const updateHotel = (id, formData) => {
-  return api.put(`/hotels/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
+// User hotel owner APIs
+export const getMyHotelOwner = () => api.get('/my-hotel-owner');
+export const updateMyHotelOwner = (data) => api.put('/my-hotel-owner', data);
+export const deleteMyHotelOwner = () => api.delete('/my-hotel-owner');
+// User hotel APIs
+export const getMyHotels = () => api.get('/my-hotels');
+export const createMyHotel = (formData) => api.post('/my-hotels', formData, {headers: {'Content-Type': 'multipart/form-data'}});
+export const updateMyHotel = (id, formData) => api.put(`/my-hotels/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});
+export const deleteMyHotel = (id) => api.delete(`/my-hotels/${id}`);
+// Admin hotel Owner APIs
+export const createHotelOwner = (formData) => api.post('/hotel-owners', formData);
+export const updateHotelOwner = (id, formData) => api.put(`/hotel-owners/${id}`, formData);
+export const deleteHotelOwner = (id) => api.delete(`/hotel-owners/${id}`);
+// Admin hotel APIs
+export const createHotel = (formData) => {return api.post('/hotels', formData, {headers: {'Content-Type': 'multipart/form-data'}});};
+export const updateHotel = (id, formData) => {return api.put(`/hotels/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});};
 export const deleteHotel = (id) => api.delete(`/hotels/${id}`);
 
-// Vehicle Owners API endpoints
+// Public vehicle owner APIs
 export const getVehicleOwners = () => api.get('/vehicle-owners');
 export const getVehicleOwnerById = (id) => api.get(`/vehicle-owners/${id}`);
 export const getVehicleOwnersByLocation = (location) => api.get(`/vehicle-owners/location/${location}`);
-export const createVehicleOwner = (formData) => api.post('/vehicle-owners', formData);
-export const updateVehicleOwner = (id, formData) => api.put(`/vehicle-owners/${id}`, formData);
-export const deleteVehicleOwner = (id) => api.delete(`/vehicle-owners/${id}`);
-// Vehicles API endpoints
+// Public vehicle APIs
 export const getVehicles = () => api.get('/vehicles');
 export const getVehicleById = (id) => api.get(`/vehicles/${id}`);
 export const getVehiclesByOwner = (ownerId) => api.get(`/vehicle-owners/${ownerId}/vehicles`);
 export const getVehiclesByLocation = (location) => api.get(`/vehicles/location/${location}`);
-export const createVehicle = (formData) => {
-  return api.post('/vehicles', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
-export const updateVehicle = (id, formData) => {
-  return api.put(`/vehicles/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};
+// User vehicle owner APIs
+export const getMyVehicleOwner = () => api.get('/my-vehicle-owner');
+export const updateMyVehicleOwner = (data) => api.put('/my-vehicle-owner', data);
+export const deleteMyVehicleOwner = () => api.delete('/my-vehicle-owner');
+// User vehicle APIs
+export const getMyVehicles = () => api.get('/my-vehicles');
+export const createMyVehicle = (formData) => api.post('/my-vehicles', formData, {headers: {'Content-Type': 'multipart/form-data'}});
+export const updateMyVehicle = (id, formData) => api.put(`/my-vehicles/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});
+export const deleteMyVehicle = (id) => api.delete(`/my-vehicles/${id}`);
+// Admin vehicle Owner APIs
+export const createVehicleOwner = (formData) => api.post('/vehicle-owners', formData);
+export const updateVehicleOwner = (id, formData) => api.put(`/vehicle-owners/${id}`, formData);
+export const deleteVehicleOwner = (id) => api.delete(`/vehicle-owners/${id}`);
+// Admin vehicle APIs
+export const createVehicle = (formData) => {return api.post('/vehicles', formData, {headers: {'Content-Type': 'multipart/form-data'}});};
+export const updateVehicle = (id, formData) => {return api.put(`/vehicles/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});};
 export const deleteVehicle = (id) => api.delete(`/vehicles/${id}`);
 
 // Role request API endpoints

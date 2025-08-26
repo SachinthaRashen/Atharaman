@@ -17,7 +17,7 @@ export const GuidesSection = () => {
   // Fetch data
   useEffect(() => {
     axios
-      .get('http://localhost:8000/api/all_guides')
+      .get('http://localhost:8000/api/guides')
       .then((response) => setGuides(response.data))
       .catch((error) => console.error('Error fetching guides:', error));
   }, []);
