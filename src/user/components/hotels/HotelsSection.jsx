@@ -16,7 +16,7 @@ export const HotelsSection = () => {
 
   // Fetch data (replace with actual API call if needed)
   useEffect(() => {
-    axios.get('http://localhost:8000/api/all_hotels')
+    axios.get('http://localhost:8000/api/hotels')
       .then((response) => setHotels(response.data))
       .catch((error) => console.error('Error fetching hotels:', error));
   }, []);
