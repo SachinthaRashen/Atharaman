@@ -56,7 +56,7 @@ export const HotelDetail = ({ hotel, onBack }) => {
     };
 
   return (
-    <div className="min-h-dvh bg-gray-50">
+    <div className="min-h-dvh bg-gray-50 pt-16">
       <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
