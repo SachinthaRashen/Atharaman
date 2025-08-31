@@ -4,6 +4,7 @@ import { Search, Filter, MapPin, ArrowLeft, ChevronDown, Grid, List } from 'luci
 import LocationCard from './LocationCard';
 import { locations } from '../../data/locationsData';
 import styles from '../../styles/LocationsPage.module.css';
+import Navbar from '../Navbar';
 
 export const LocationsPage = () => {
   const navigate = useNavigate();
@@ -54,9 +55,22 @@ export const LocationsPage = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedFilter]);
 
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbarHeight = 64; // Match your navbar height
+      const elementPosition =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   return (
     <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 ${styles.locationsPage}`}>
-      {/* Header */}
+      <Navbar onScrollToSection={scrollToSection} />
       <div className="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between mb-6">
