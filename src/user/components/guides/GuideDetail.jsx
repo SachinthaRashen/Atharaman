@@ -4,8 +4,8 @@ import { FaWhatsapp } from 'react-icons/fa6';
 import Navbar from '../Navbar';
 
 
-
 const GuideDetail = ({ guide, onBack }) => {
+
   const scrollToSection = (sectionId) => {
       const element = document.getElementById(sectionId);
       if (element) {
