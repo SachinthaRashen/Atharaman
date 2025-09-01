@@ -3,6 +3,7 @@ import { vehicles } from '../../data/mockData';
 import SearchAndFilter from '../SearchAndFilter';
 import VehicleCard from './VehicleCard';
 import VehicleDetail from './VehicleDetail';
+import Navbar from '../Navbar';
 
 export const VehiclesSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,8 +54,22 @@ export const VehiclesSection = () => {
     );
   }
 
+  const scrollToSection = (sectionId) => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const navbarHeight = 64; // Match your navbar height
+        const elementPosition = 
+          element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+        window.scrollTo({
+          top: elementPosition,
+          behavior: 'smooth',
+        });
+      }
+    };
+
   return (
-    <div className="min-h-dvh bg-gray-50">
+    <div className="min-h-dvh bg-gray-50 pt-16">
+      <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Adventure Vehicles</h2>

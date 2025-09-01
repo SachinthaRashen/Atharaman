@@ -1,9 +1,24 @@
 import React from 'react';
 import { ArrowLeft, MapPin, Star, User, Mail, DollarSign } from 'lucide-react';
+import Navbar from '../Navbar';
 
 const ShopDetail = ({ shop, onBack }) => {
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbarHeight = 64; // Match your navbar height
+      const elementPosition =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
   return (
-    <div className="min-h-dvh bg-gray-50">
+    <div className="min-h-dvh bg-gray-50 pt-16">
+      <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="relative h-32 bg-gradient-to-br from-emerald-100 to-emerald-200">
