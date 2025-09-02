@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { shops } from '../../data/mockData';
 import SearchAndFilter from '../SearchAndFilter';
 import ShopCard from './ShopCard';
 import ShopDetail from './ShopDetail';
 import Navbar from '../Navbar';
+import axios from 'axios';
 
 const ShopsSection = () => {
+  const [shops, setShops] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [selectedShop, setSelectedShop] = useState(null);
@@ -14,20 +15,33 @@ const ShopsSection = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const shopsPerPage = 6; // how many shops to show per page
 
+  // Fetch shops from API
+  useEffect(() => {
+    axios
+    .get('http://127.0.0.1:8000/api/shops')
+    .then((response) => setShops(response.data))
+    .catch((error) => console.error('Error fetching shops:', error));
+  }, []);
+
   const filteredShops = useMemo(() => {
     return shops.filter(shop => {
-      const matchesSearch = shop.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesLocation = selectedLocation === 'All Locations' || shop.location === selectedLocation;
+      const matchesSearch = shop.shopName
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase());
+      const matchesLocation =
+      selectedLocation === 'All Locations' || (shop.locations && shop.locations.includes(selectedLocation));
       return matchesSearch && matchesLocation;
     });
-  }, [searchTerm, selectedLocation]);
+  }, [searchTerm, selectedLocation, shops]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredShops.length / shopsPerPage);
   const startIndex = (currentPage - 1) * shopsPerPage;
-  const currentShops = filteredShops.slice(startIndex, startIndex + shopsPerPage);
-
-  // Reset page when filters change
+  const currentShops = filteredShops.slice(
+    startIndex,
+    startIndex + shopsPerPage
+  );
+  // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedLocation]);
