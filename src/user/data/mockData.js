@@ -428,6 +428,84 @@ export const vehicles = [
   }
 ];
 
+// Mock reviews data
+export const reviews = {
+  hotels: {
+    1: [
+      {
+        id: 1,
+        userId: 1,
+        userName: "Sarah Johnson",
+        rating: 5,
+        comment: "Absolutely stunning resort! The ocean views are breathtaking and the service is impeccable.",
+        date: "2024-01-15",
+        userAvatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100"
+      },
+      {
+        id: 2,
+        userId: 2,
+        userName: "Mike Wilson",
+        rating: 4,
+        comment: "Great location and beautiful rooms. The spa was amazing!",
+        date: "2024-01-10",
+        userAvatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100"
+      }
+    ]
+  },
+  guides: {
+    1: [
+      {
+        id: 1,
+        userId: 1,
+        userName: "Sarah Johnson",
+        rating: 5,
+        comment: "Maria was an incredible guide! Her knowledge of Barcelona's art scene is unmatched.",
+        date: "2024-01-12",
+        userAvatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100"
+      }
+    ]
+  },
+  locations: {
+    1: [
+      {
+        id: 1,
+        userId: 2,
+        userName: "Mike Wilson",
+        rating: 5,
+        comment: "The sunset views from here are absolutely magical. A must-visit!",
+        date: "2024-01-08",
+        userAvatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100"
+      }
+    ]
+  },
+  vehicles: {
+    1: [
+      {
+        id: 1,
+        userId: 1,
+        userName: "Sarah Johnson",
+        rating: 5,
+        comment: "Perfect vehicle for our Costa Rica adventure. Carlos was very helpful!",
+        date: "2024-01-05",
+        userAvatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100"
+      }
+    ]
+  },
+  shops: {
+    1: [
+      {
+        id: 1,
+        userId: 2,
+        userName: "Mike Wilson",
+        rating: 4,
+        comment: "Beautiful handcrafted items. Great quality and fair prices.",
+        date: "2024-01-03",
+        userAvatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100"
+      }
+    ]
+  }
+};
+
 export const locations = [
   "All Locations",
   "Rocky Mountains",
