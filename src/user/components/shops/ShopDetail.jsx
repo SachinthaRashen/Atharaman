@@ -1,78 +1,92 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, MapPin, Star, User, Mail, DollarSign } from 'lucide-react';
+import { ArrowLeft, MapPin, Star, DollarSign } from 'lucide-react';
 import Navbar from '../Navbar';
+import ReviewSection from '../ReviewSection';
+import { getReviewsByEntity } from '../../../services/api';
 import axios from 'axios';
 
 const ShopDetail = ({ shop, onBack }) => {
-  const [items, setItems] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [items, setItems] = useState([]);  // ✅ add state for items
 
   useEffect(() => {
-    if (shop?.id) {
-      axios
-        .get(`http://127.0.0.1:8000/api/shops/${shop.id}/items`)
-        .then((res) => {
-          const formatted = res.data.map((item) => ({
-            id: item.id,
-            name: item.itemName,
-            description: item.description,
-            price: item.price,
-            image: item.itemImage
-              ? `http://127.0.0.1:8000/storage/${JSON.parse(item.itemImage)[0]}`
-              : '/default-item.png',
-          }));
-          setItems(formatted);
-        })
-        .catch((err) => console.error('Error fetching items:', err));
-    }
-  }, [shop]);
+    const fetchShopReviews = async () => {
+      if (shop?.id) {
+        try {
+          setReviewsLoading(true);
+          const response = await getReviewsByEntity('shop', shop.id);
+          setReviews(response.data);
 
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const navbarHeight = 64;
-      const elementPosition =
-        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
-      window.scrollTo({
-        top: elementPosition,
-        behavior: 'smooth',
-      });
-    }
+          if (response.data.length > 0) {
+            const totalRating = response.data.reduce(
+              (sum, review) => sum + review.rating,
+              0
+            );
+            setAverageRating(totalRating / response.data.length);
+          }
+        } catch (error) {
+          console.error('Error fetching shop reviews:', error);
+        } finally {
+          setReviewsLoading(false);
+        }
+      }
+    };
+
+    // ✅ Fetch items for this shop
+    const fetchShopItems = async () => {
+      if (shop?.id) {
+        try {
+          const response = await axios.get(
+            `http://localhost:8000/api/shops/${shop.id}/items`
+          );
+          setItems(response.data); // assume backend returns item array
+        } catch (error) {
+          console.error('Error fetching shop items:', error);
+        }
+      }
+    };
+
+    fetchShopReviews();
+    fetchShopItems();
+  }, [shop?.id]);
+
+  const renderStars = (rating) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <span
+        key={i}
+        className={`text-lg ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
+      >
+        ★
+      </span>
+    ));
   };
 
   return (
     <div className="min-h-dvh bg-gray-50 pt-16">
-      <Navbar onScrollToSection={scrollToSection} />
+      <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="relative h-32 bg-gradient-to-br from-emerald-100 to-emerald-200">
-            <button
-              onClick={onBack}
-              className="absolute top-4 left-4 bg-white/90 hover:bg-white rounded-full p-2 transition-all"
-            >
-              <ArrowLeft className="size-5 text-gray-700" />
-            </button>
-            <div className="absolute top-4 right-4 bg-white/90 rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <Star className="size-5 text-yellow-400 fill-current" />
-                <span className="font-semibold text-lg">{shop.rating}</span>
-              </div>
-            </div>
-          </div>
+          {/* ...Shop Header... */}
 
           <div className="p-6 md:p-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{shop.shopName}</h1>
 
+            {/* Location */}
             <div className="flex items-center gap-2 text-gray-600 mb-6">
               <MapPin className="size-5 text-emerald-600" />
               <span>{shop.location}</span>
             </div>
 
+            {/* About */}
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">About</h2>
                 <p className="text-gray-600 leading-relaxed">{shop.description}</p>
               </div>
 
+              {/* ✅ Items Section */}
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Available Items</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -84,7 +98,7 @@ const ShopDetail = ({ shop, onBack }) => {
                       >
                         <div className="h-32 overflow-hidden">
                           <img
-                            src={item.image}
+                            src={`http://localhost:8000/${item.image}`}
                             alt={item.name}
                             className="w-full h-full object-cover hover:scale-105 transition-transform"
                             loading="lazy"
@@ -107,6 +121,9 @@ const ShopDetail = ({ shop, onBack }) => {
                   )}
                 </div>
               </div>
+
+              {/* Reviews Section */}
+              <ReviewSection entityType="shop" entityId={shop?.id} />
             </div>
           </div>
         </div>
