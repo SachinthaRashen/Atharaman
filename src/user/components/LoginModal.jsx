@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { loginUser } from '../../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
-const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
+const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -10,6 +11,8 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,21 +25,10 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
         password: formData.password
       });
       
-      console.log('Login response:', response.data);
-      
       if (response.data.token && response.data.user) {
-        // Store token and user data
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        // Use AuthContext to handle login
+        login(response.data.user, response.data.token);
         
-        console.log('Login successful, user:', response.data.user);
-        
-        // Update parent component state FIRST
-        if (onLogin) {
-          onLogin(response.data.user); // This should update your Navbar state
-        }
-        
-        // Close the modal
         onClose();
         
         // Redirect after a brief delay to allow state updates

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Eye, EyeOff } from 'lucide-react';
+import { X, Eye, EyeOff, User, Mail, Lock } from 'lucide-react';
 import { registerUser } from '../../services/api';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
-const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
+const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -13,13 +14,21 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate(); // Initialize navigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
+    // Validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
       return;
     }
 
@@ -32,13 +41,26 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
         password: formData.password
       });
       
-      if (response.data.message) {
-        onRegister(formData.name);
+      if (response.data.user) {
+        // Close the modal
         onClose();
-        // Optionally switch to login modal or show success message
+        
+        // Show success message and redirect to login
+        setTimeout(() => {
+          // Navigate to login page with success message
+          navigate('/?message=Registration successful! Please login with your credentials.');
+          
+          // Optionally, switch to login modal after a delay
+          setTimeout(() => {
+            if (onSwitchToLogin) {
+              onSwitchToLogin();
+            }
+          }, 1000);
+        }, 500);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      console.error('Registration error:', err.response?.data);
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -48,12 +70,12 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 relative animate-modal-enter max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 relative animate-modal-enter">
         {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
-          aria-label="Close registration modal"
+          aria-label="Close register modal"
         >
           <X className="size-6" />
         </button>
@@ -61,7 +83,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
         {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Create Account</h2>
-          <p className="text-gray-600">Join us for amazing adventures</p>
+          <p className="text-gray-600">Join us today!</p>
         </div>
 
         {/* Error Message */}
@@ -78,16 +100,18 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
               Full Name
             </label>
-            <input
-              id="name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-              placeholder="Your full name"
-              required
-              autoComplete="name"
-            />
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 size-5" />
+              <input
+                id="name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                placeholder="Enter your full name"
+                required
+              />
+            </div>
           </div>
 
           {/* Email Field */}
@@ -95,16 +119,18 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email
             </label>
-            <input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-              placeholder="Enter your email"
-              required
-              autoComplete="email"
-            />
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 size-5" />
+              <input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
           </div>
 
           {/* Password Field */}
@@ -112,24 +138,27 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
-            <input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-              placeholder="Create a password"
-              required
-              autoComplete="new-password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
-            </button>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 size-5" />
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                placeholder="Enter your password"
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+              </button>
+            </div>
           </div>
 
           {/* Confirm Password Field */}
@@ -137,31 +166,34 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
               Confirm Password
             </label>
-            <input
-              id="confirmPassword"
-              type={showConfirmPassword ? 'text' : 'password'}
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-              placeholder="Confirm your password"
-              required
-              autoComplete="new-password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
-              aria-label={showConfirmPassword ? "Hide password confirmation" : "Show password confirmation"}
-            >
-              {showConfirmPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
-            </button>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 size-5" />
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                placeholder="Confirm your password"
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+              </button>
+            </div>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-green-600 hover:to-teal-600 transform hover:scale-[1.02] transition-all duration-200 shadow-md hover:shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-orange-600 hover:to-red-600 transform hover:scale-[1.02] transition-all duration-200 shadow-md hover:shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
