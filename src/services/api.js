@@ -42,6 +42,24 @@ export const resetPassword = (resetData) => api.post('/reset-password', resetDat
 export const getProfile = () => api.get('/user/profile');
 export const logoutUser = () => api.post('/logout');
 
+// Review APIs
+export const getReviewsByEntity = (entityType, entityId) => api.get(`/reviews/entity/${entityType}/${entityId}`);
+export const getReviews = () => api.get('/reviews');
+export const getReview = (id) => api.get(`/reviews/${id}`);
+export const createReview = (formData) => api.post('/reviews', formData, {headers: {'Content-Type': 'multipart/form-data'}});
+export const updateReview = (id, formData) => api.put(`/reviews/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});
+export const deleteReview = (id) => api.delete(`/reviews/${id}`);
+export const getUserReviews = () => api.get('/user/reviews');
+
+// Website Review APIs
+export const getWebsiteReviews = () => api.get('/website-reviews');
+export const getWebsiteReview = (id) => api.get(`/website-reviews/${id}`);
+export const createWebsiteReview = (data) => api.post('/website-reviews', data);
+export const updateWebsiteReview = (id, data) => api.post(`/website-reviews/${id}`, data);
+export const deleteWebsiteReview = (id) => api.delete(`/website-reviews/${id}`);
+export const getUserWebsiteReviews = () => api.get('/user/website-reviews');
+export const getRecentWebsiteReviews = (limit = 10) => api.get(`/website-reviews/recent/${limit}`);
+
 // Admin only APIs
 export const getUsers = () => api.get('/users');
 // User registration & management (Admin only)
@@ -68,7 +86,7 @@ export const getGuideById = (id) => api.get(`/guides/${id}`);
 export const getGuidesByLocation = (location) => api.get(`/guides/location/${location}`);
 // User guide APIs
 export const getMyGuide = () => api.get('/my-guide');
-export const updateMyGuide = (data) => api.put('/my-guide', data);
+export const updateMyGuide = (data) => api.put('/my-guide', data, {headers: {'Content-Type': 'multipart/form-data'}});
 export const deleteMyGuide = () => api.delete('/my-guide');
 // Admin guide APIs
 export const createGuide = (formData) => {return api.post('/guides', formData, {headers: {'Content-Type': 'multipart/form-data'}});};
