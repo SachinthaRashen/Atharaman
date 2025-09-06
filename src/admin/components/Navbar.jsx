@@ -1,29 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, LogOut, Calendar, Clock, X, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { logoutUser } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const [loginTime, setLoginTime] = useState('');
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
+  const { user, logout } = useAuth();
+
   useEffect(() => {
-    // Get user data from localStorage on component mount
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const userObj = JSON.parse(userData);
-      setUser(userObj);
-      
-      // Set login time (you could store this during login)
-      setLoginTime(new Date().toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      }));
-    }
+    // Set login time when component mounts
+    setLoginTime(new Date().toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    }));
   }, []);
 
   const toggleDropdown = () => {
@@ -41,22 +35,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     closeLogoutConfirmation();
-    
-    try {
-      // Call the API logout endpoint
-      await logoutUser();
-    } catch (error) {
-      console.error('Logout API error:', error);
-      // Even if API call fails, we'll still clear local storage
-    } finally {
-      // Clear local storage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Redirect to homepage
-      navigate('/');
-      window.location.reload(); // Refresh to reset the state completely
-    }
+    await logout();
   };
 
   useEffect(() => {

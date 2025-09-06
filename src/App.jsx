@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { AuthProvider } from './user/contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Admin Components
 import Navbar from './admin/components/Navbar';
@@ -38,6 +38,11 @@ import ProtectedRoute from './services/ProtectedRoute';
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
 
   return (
     <div className="App">

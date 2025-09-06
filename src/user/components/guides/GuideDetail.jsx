@@ -4,11 +4,15 @@ import { FaWhatsapp } from 'react-icons/fa6';
 import Navbar from '../Navbar';
 import ReviewSection from '../ReviewSection';
 import { getReviewsByEntity } from '../../../services/api';
+import { getGuideImageUrls, getMainGuideImage } from '../../../helpers/ImageHelpers';
 
 const GuideDetail = ({ guide, onBack }) => {
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
   const [reviewsLoading, setReviewsLoading] = useState(true);
+
+  const imageUrls = getGuideImageUrls(guide);
+  const mainImage = getMainGuideImage(guide);
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -66,9 +70,12 @@ const GuideDetail = ({ guide, onBack }) => {
           {/* Guide Image + Back Button */}
           <div className="relative h-64 md:h-80">
             <img 
-              src={guide?.guideImage ? `http://localhost:8000/${guide.guideImage}` : "/default.jpg"} 
+              src={mainImage}
               alt={guide?.guideName || "Guide"}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src = "/default-guide.jpg";
+              }}
             />
             
             <button

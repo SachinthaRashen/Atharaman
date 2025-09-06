@@ -9,7 +9,7 @@ const api = axios.create({
   withCredentials: true
 });
 
-// Add request interceptor to include auth token
+// Request interceptor to include auth token
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
   if (token && !config.url.includes('/login') && !config.url.includes('/register')) {
@@ -18,7 +18,7 @@ api.interceptors.request.use(config => {
   return config;
 });
 
-// Add response interceptor to handle auth errors
+// Response interceptor to handle auth errors
 api.interceptors.response.use(
   response => response,
   error => {
@@ -63,12 +63,8 @@ export const getRecentWebsiteReviews = (limit = 10) => api.get(`/website-reviews
 // Admin only APIs
 export const getUsers = () => api.get('/users');
 // User registration & management (Admin only)
-export const registerAdmin = (adminData) => {
-  return api.post('/admin/users', adminData, {headers: {'Content-Type': 'multipart/form-data'}});
-};
-export const updateUser = (id, userData) => {
-  return api.put(`/admin/users/${id}`, userData, {headers: {'Content-Type': 'multipart/form-data'}});
-};
+export const registerAdmin = (adminData) => {return api.post('/admin/users', adminData, {headers: {'Content-Type': 'multipart/form-data'}});};
+export const updateUser = (id, userData) => {return api.put(`/admin/users/${id}`, userData, {headers: {'Content-Type': 'multipart/form-data'}});};
 export const deleteUser = (id) => api.delete(`/admin/users/${id}`);
 
 // Public location APIs

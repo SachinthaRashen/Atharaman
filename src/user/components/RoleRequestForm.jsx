@@ -57,6 +57,27 @@ const RoleRequestForm = ({ role, userData, onSubmit, onCancel, isSubmitting }) =
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    // Convert images to base64 for storage
+    const imagePromises = files.map(file => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(imagePromises).then(base64Images => {
+      setFormData(prev => ({
+        ...prev,
+        guideImage: base64Images
+      }));
+    });
+  };
+
   const handleLanguageChange = (language) => {
     setFormData(prev => ({
       ...prev,
@@ -137,16 +158,26 @@ const RoleRequestForm = ({ role, userData, onSubmit, onCancel, isSubmitting }) =
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files[0];
-            if (file) {
-              setFormData(prev => ({ ...prev, guideImage: file.name }));
-            }
-          }}
+          onChange={handleImageChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
+          multiple
         />
-        <p className="text-xs text-gray-500 mt-1">Upload your profile picture</p>
+        <p className="text-xs text-gray-500 mt-1">Upload your profile picture(s)</p>
+        
+        {/* Show selected image previews */}
+        {formData.guideImage && formData.guideImage.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {formData.guideImage.map((imageData, index) => (
+              <img
+                key={index}
+                src={imageData}
+                alt={`Preview ${index}`}
+                className="w-16 h-16 object-cover rounded"
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -358,8 +389,8 @@ const RoleRequestForm = ({ role, userData, onSubmit, onCancel, isSubmitting }) =
   const getRoleTitle = () => {
     switch (role) {
       case 'guide': return 'Guide Registration';
-      case 'hotel_owner': return 'Hotel Owner Registration';
       case 'shop_owner': return 'Shop Owner Registration';
+      case 'hotel_owner': return 'Hotel Owner Registration';
       case 'vehicle_owner': return 'Vehicle Owner Registration';
       default: return 'Role Registration';
     }
