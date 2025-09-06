@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getProfile, logoutUser } from '../../services/api';
+import { getProfile, logoutUser } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -28,15 +28,6 @@ export const AuthProvider = ({ children }) => {
           setToken(storedToken);
           setUser(JSON.parse(storedUser));
           setIsAuthenticated(true);
-          
-          // Verify token is still valid by fetching profile
-          try {
-            await getProfile();
-          } catch (error) {
-            // Token is invalid, clear auth state
-            console.error('Token validation failed:', error);
-            logout();
-          }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -57,7 +48,6 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(true);
   };
 
-  // In your AuthContext.js, update the logout function:
   const logout = async () => {
     try {
       if (token) {
@@ -74,7 +64,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       
       // Redirect to home page after logout
-      window.location.href = '/'; // This ensures a full page reload and clears any state
+      window.location.href = '/';
     }
   };
 
@@ -111,15 +101,7 @@ export const withAuth = (Component) => {
     }
     
     if (!isAuthenticated) {
-      // Redirect to login or show unauthorized message
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Authentication Required</h2>
-            <p className="text-gray-600">Please log in to access this page.</p>
-          </div>
-        </div>
-      );
+      return <Navigate to="/" replace />;
     }
     
     return <Component {...props} />;

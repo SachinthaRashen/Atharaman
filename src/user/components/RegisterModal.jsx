@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { X, Eye, EyeOff, User, Mail, Lock } from 'lucide-react';
 import { registerUser } from '../../services/api';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
-const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
+const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -15,7 +15,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,9 +45,13 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
         // Close the modal
         onClose();
         
+        // Call the onRegister callback if provided
+        if (onRegister) {
+          onRegister();
+        }
+        
         // Show success message and redirect to login
         setTimeout(() => {
-          // Navigate to login page with success message
           navigate('/?message=Registration successful! Please login with your credentials.');
           
           // Optionally, switch to login modal after a delay

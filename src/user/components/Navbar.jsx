@@ -3,7 +3,7 @@ import { Menu, X, User, ChevronDown, LogOut, Settings, Shield, FileText } from '
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar = ({ onScrollToSection }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,7 +11,6 @@ const Navbar = ({ onScrollToSection }) => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   
-  // Use AuthContext instead of local state
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 

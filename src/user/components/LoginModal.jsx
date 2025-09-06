@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { loginUser } from '../../services/api';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
-const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
+const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -31,7 +31,12 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
         
         onClose();
         
-        // Redirect after a brief delay to allow state updates
+        // Call the onLogin callback if provided
+        if (onLogin) {
+          onLogin();
+        }
+        
+        // Redirect based on role
         setTimeout(() => {
           if (response.data.user.role === 'Admin') {
             window.location.href = '/admin';

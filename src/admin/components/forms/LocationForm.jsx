@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, X, Upload } from 'lucide-react';
+import { MapPin, X, Upload, Loader } from 'lucide-react';
 
 const LocationForm = ({ location, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -13,6 +13,7 @@ const LocationForm = ({ location, onSave, onCancel }) => {
 
   const [images, setImages] = useState([]);
   const [existingImages, setExistingImages] = useState(location?.locationImage || []);
+  const [loading, setLoading] = useState(false);
   
   const provinces = ['Central', 'Eastern', 'North Central', 'Northern', 'North Western', 'Sabaragamuwa', 'Southern', 'Uva', 'Western'];
 
@@ -43,8 +44,9 @@ const LocationForm = ({ location, onSave, onCancel }) => {
     setExistingImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     
     // Create FormData object for file uploads
     const formDataObj = new FormData();
@@ -65,7 +67,13 @@ const LocationForm = ({ location, onSave, onCancel }) => {
       formDataObj.append('remove_images', 'true');
     }
 
-    onSave(formDataObj);
+    try {
+      await onSave(formDataObj);
+    } catch (error) {
+      console.error('Error in form submission:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -244,15 +252,17 @@ const LocationForm = ({ location, onSave, onCancel }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          disabled={loading}
+          className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          disabled={loading}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center disabled:opacity-50 min-w-[80px]"
         >
-          Save
+          {loading ? <Loader className="w-5 h-5 animate-spin" /> : 'Save'}
         </button>
       </div>
     </form>
