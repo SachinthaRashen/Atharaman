@@ -7,6 +7,7 @@ import ShopOwnerProfile from './profiles/ShopOwnerProfile';
 import VehicleOwnerProfile from './profiles/VehicleOwnerProfile';
 import RoleRequestForm from './RoleRequestForm';
 import { getProfile, requestRole, getRoleRequests } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const UserProfile = () => {
   const [profile, setProfile] = useState({
@@ -31,6 +32,8 @@ const UserProfile = () => {
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { user: authUser } = useAuth(); // Get user from AuthContext
 
   useEffect(() => {
     fetchUserData();
@@ -167,7 +170,7 @@ const UserProfile = () => {
           businessMail: formData.email.substring(0, 100),
           personalNumber: formData.contactNumber.substring(0, 15),
           whatsappNumber: formData.whatsappNumber.substring(0, 15),
-          guideImage: formData.guideImage ? [formData.guideImage] : ['default-image.jpg'],
+          guideImage: formData.guideImage || [],
           languages: formData.languages,
           locations: formData.locations,
           description: formData.description.substring(0, 500)

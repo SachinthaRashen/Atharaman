@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, ChevronDown, ChevronUp, Award, MapPin, Users, Star, Languages, Edit3, Trash2, User, Mail, Phone, MessageCircle, X, Upload } from 'lucide-react';
 import { getMyGuide, updateMyGuide, deleteMyGuide, getLocations } from '../../../services/api';
+import { getGuideImageUrls, getMainGuideImage } from '../../../helpers/ImageHelpers';
 
 const GuideProfile = ({ isExpanded, onToggleExpand, userId }) => {
   const [guide, setGuide] = useState(null);
@@ -25,6 +26,10 @@ const GuideProfile = ({ isExpanded, onToggleExpand, userId }) => {
   const [imagePreviews, setImagePreviews] = useState([]);
 
   const availableLanguages = ['English', 'Sinhala', 'Tamil', 'German', 'French', 'Japanese', 'Chinese'];
+
+  // Get image URLs using helper functions
+  const imageUrls = getGuideImageUrls(guide);
+  const mainImage = getMainGuideImage(guide);
 
   // Fetch data only when expanded
   useEffect(() => {
@@ -51,9 +56,10 @@ const GuideProfile = ({ isExpanded, onToggleExpand, userId }) => {
         locations: response.data.locations || []
       });
 
-      // Set image previews if there are existing images
-      if (response.data.guideImage && response.data.guideImage.length > 0) {
-        setImagePreviews(response.data.guideImage.map(img => `http://localhost:8000/storage/${img}`));
+      // Set image previews using helper function
+      if (response.data.guideImage) {
+        const urls = getGuideImageUrls(response.data);
+        setImagePreviews(urls);
       }
     } catch (err) {
       console.error('Error fetching guide data:', err);
@@ -110,6 +116,8 @@ const GuideProfile = ({ isExpanded, onToggleExpand, userId }) => {
       const response = await updateMyGuide(formData);
       setGuide(response.data.guide);
       setShowEditGuideForm(false);
+      setImages([]);
+      setImagePreviews([]);
       alert('Guide details updated successfully!');
     } catch (err) {
       console.error('Error updating guide:', err);
@@ -179,6 +187,25 @@ const GuideProfile = ({ isExpanded, onToggleExpand, userId }) => {
     }));
   };
 
+  const cancelEdit = () => {
+    setShowEditGuideForm(false);
+    setImages([]);
+    setImagePreviews([]);
+    // Reset form data to current guide data
+    if (guide) {
+      setGuideFormData({
+        guideName: guide.guideName || '',
+        guideNic: guide.guideNic || '',
+        businessMail: guide.businessMail || '',
+        personalNumber: guide.personalNumber || '',
+        whatsappNumber: guide.whatsappNumber || '',
+        description: guide.description || '',
+        languages: guide.languages || [],
+        locations: guide.locations || []
+      });
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
       {/* Header Section - Always Visible */}
@@ -229,7 +256,7 @@ const GuideProfile = ({ isExpanded, onToggleExpand, userId }) => {
                       className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors text-sm"
                     >
                       <Edit3 className="size-4" />
-                      Edit Details
+                      {showEditGuideForm ? 'Cancel Edit' : 'Edit Details'}
                     </button>
                     <button
                       onClick={handleDeleteGuide}
@@ -249,8 +276,22 @@ const GuideProfile = ({ isExpanded, onToggleExpand, userId }) => {
                         Guide Images
                       </label>
                       <div className="flex flex-wrap gap-4 mb-4">
+                        {/* Existing images */}
+                        {getGuideImageUrls(guide).map((imageUrl, index) => (
+                          <div key={`existing-${index}`} className="relative h-32 w-32">
+                            <img
+                              src={imageUrl}
+                              alt={`Existing ${index}`}
+                              className="h-full w-full object-cover rounded-lg"
+                              onError={(e) => {
+                                e.target.src = "/default-guide.jpg";
+                              }}
+                            />
+                          </div>
+                        ))}
+                        {/* New image previews */}
                         {imagePreviews.map((preview, index) => (
-                          <div key={index} className="relative h-32 w-32">
+                          <div key={`new-${index}`} className="relative h-32 w-32">
                             <img
                               src={preview}
                               alt={`Preview ${index}`}
@@ -405,7 +446,7 @@ const GuideProfile = ({ isExpanded, onToggleExpand, userId }) => {
                         Update Details
                       </button>
                       <button
-                        onClick={() => setShowEditGuideForm(false)}
+                        onClick={cancelEdit}
                         className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors"
                       >
                         Cancel
@@ -415,18 +456,21 @@ const GuideProfile = ({ isExpanded, onToggleExpand, userId }) => {
                 ) : (
                   <div className="space-y-4">
                     {/* Display existing images */}
-                    {guide.guideImage && guide.guideImage.length > 0 && (
+                    {imageUrls.length > 0 && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Guide Images
                         </label>
                         <div className="flex flex-wrap gap-4">
-                          {guide.guideImage.map((image, index) => (
+                          {imageUrls.map((imageUrl, index) => (
                             <img
                               key={index}
-                              src={`http://localhost:8000/storage/${image}`}
+                              src={imageUrl}
                               alt={`Guide ${index}`}
                               className="h-32 w-32 object-cover rounded-lg"
+                              onError={(e) => {
+                                e.target.src = "/default-guide.jpg";
+                              }}
                             />
                           ))}
                         </div>

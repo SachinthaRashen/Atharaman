@@ -3,6 +3,7 @@ import DataTable from '../components/common/DataTable';
 import Modal from '../components/common/Modal';
 import LocationForm from '../components/forms/LocationForm';
 import LocationView from '../components/views/LocationView';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   getLocations,
   createLocation,
@@ -17,6 +18,8 @@ const ManageLocations = () => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const { user } = useAuth();
 
   // Fetch locations from backend
   useEffect(() => {
@@ -76,7 +79,11 @@ const ManageLocations = () => {
         await deleteLocation(location.id);
         setLocations(locations.filter(l => l.id !== location.id));
       } catch (err) {
-        setError('Failed to delete location. Please try again.');
+        if (err.response?.status === 403) {
+          setError('You do not have permission to delete locations.');
+        } else {
+          setError('Failed to delete location. Please try again.');
+        }
         console.error('Error deleting location:', err);
       }
     }
@@ -97,10 +104,14 @@ const ManageLocations = () => {
         }
       }
       setShowModal(false);
+      setError(null);
     } catch (err) {
       console.error('Error saving location:', err);
-      console.error('Error response:', err.response);
-      setError(`Failed to ${modalType === 'add' ? 'create' : 'update'} location. Please try again.`);
+      if (err.response?.status === 403) {
+        setError('You do not have permission to modify locations.');
+      } else {
+        setError(`Failed to ${modalType === 'add' ? 'create' : 'update'} location. Please try again.`);
+      }
     }
   };
 
@@ -115,12 +126,14 @@ const ManageLocations = () => {
           <h1 className="text-2xl font-bold text-gray-900">Locations List</h1>
           <p className="text-gray-600 mt-1">Manage all tourist locations in the system</p>
         </div>
-        <button
-          onClick={handleAdd}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-        >
-          Add New
-        </button>
+        {user?.role === 'Admin' && (
+          <button
+            onClick={handleAdd}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+          >
+            Add New
+          </button>
+        )}
       </div>
 
       {error && (
@@ -133,8 +146,8 @@ const ManageLocations = () => {
         data={locations}
         columns={columns}
         onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={user?.role === 'Admin' ? handleEdit : undefined}
+        onDelete={user?.role === 'Admin' ? handleDelete : undefined}
       />
 
       <Modal

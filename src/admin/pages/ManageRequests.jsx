@@ -4,12 +4,15 @@ import Modal from '../components/common/Modal';
 import RequestView from '../components/views/RequestView';
 import { getAdminRoleRequests, approveRoleRequest, rejectRoleRequest } from '../../services/api';
 import { Eye } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ManageRequests = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const { user } = useAuth(); // Get user from AuthContext
 
   useEffect(() => {
     fetchRequests();
@@ -119,7 +122,7 @@ const ManageRequests = () => {
                 </button>
 
                 {/* Accept/Reject Buttons (only for pending requests) */}
-                {request.status === 'pending' && (
+                {request.status === 'pending' && user?.role === 'Admin' && (
                   <>
                     <button
                       onClick={() => handleAccept(request)}
@@ -152,7 +155,7 @@ const ManageRequests = () => {
             isOpen={showModal}
             onClose={() => setShowModal(false)}
             title="Request Details"
-            size="large" // Changed to large to accommodate more data
+            size="large"
           >
             {selectedRequest && (
               <RequestView request={selectedRequest} />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   getReviewsByEntity, 
   createReview, 
@@ -34,7 +34,10 @@ const ReviewSection = ({ entityType, entityId }) => {
 
   const handleSubmitReview = async (e) => {
     e.preventDefault();
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      alert('Please log in to submit a review.');
+      return;
+    }
 
     setIsSubmitting(true);
     
@@ -55,7 +58,11 @@ const ReviewSection = ({ entityType, entityId }) => {
       setImages([]);
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert('Failed to submit review. Please try again.');
+      if (error.response?.status === 400) {
+        alert('You have already reviewed this entity.');
+      } else {
+        alert('Failed to submit review. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -81,11 +88,6 @@ const ReviewSection = ({ entityType, entityId }) => {
       formData.append('comment', newReview.comment);
       formData.append('_method', 'PUT');
     
-      // Debug: Log what's in the formData
-      for (let [key, value] of formData.entries()) {
-        console.log('FormData:', key, value);
-      }
-
       // Append images if any
       if (images.length > 0) {
         images.forEach((image) => {
@@ -102,6 +104,7 @@ const ReviewSection = ({ entityType, entityId }) => {
       ));
       setEditingReview(null);
       setNewReview({ rating: 5, comment: '' });
+      setImages([]);
     } catch (error) {
       console.error('Error updating review:', error);
       alert('Failed to update review. Please try again.');
@@ -264,6 +267,7 @@ const ReviewSection = ({ entityType, entityId }) => {
                   onClick={() => {
                     setEditingReview(null);
                     setNewReview({ rating: 5, comment: '' });
+                    setImages([]);
                   }}
                   className="bg-gray-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
                 >
@@ -306,7 +310,7 @@ const ReviewSection = ({ entityType, entityId }) => {
                         {review.images.map((image, index) => (
                           <img
                             key={index}
-                            src={`/storage/${image}`}
+                            src={`http://localhost:8000/storage/${image}`}
                             alt={`Review image ${index + 1}`}
                             className="w-20 h-20 object-cover rounded"
                           />
@@ -318,14 +322,16 @@ const ReviewSection = ({ entityType, entityId }) => {
                   </div>
                 </div>
                 
-                {user && user.id === review.user_id && (
+                {user && (user.id === review.user_id || user.role === 'Admin') && (
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEditReview(review)}
-                      className="text-blue-600 text-sm underline hover:text-blue-800"
-                    >
-                      Edit
-                    </button>
+                    {user.id === review.user_id && (
+                      <button
+                        onClick={() => handleEditReview(review)}
+                        className="text-blue-600 text-sm underline hover:text-blue-800"
+                      >
+                        Edit
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDeleteReview(review.id)}
                       className="text-red-600 text-sm underline hover:text-red-800"

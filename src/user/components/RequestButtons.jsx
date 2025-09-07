@@ -95,7 +95,7 @@ const RequestButtons = ({
               </div>
               
               <button
-                onClick={() => onRoleRequest(role.id)} // This should pass the role ID
+                onClick={() => onRoleRequest(role.id)}
                 disabled={state !== 'available'}
                 className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center text-sm ${
                   state === 'approved'
