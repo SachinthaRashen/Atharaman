@@ -9,7 +9,7 @@ const ShopDetail = ({ shop, onBack }) => {
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
   const [reviewsLoading, setReviewsLoading] = useState(true);
-  const [items, setItems] = useState([]);  // ✅ add state for items
+  const [items, setItems] = useState([]); 
 
   useEffect(() => {
     const fetchShopReviews = async () => {

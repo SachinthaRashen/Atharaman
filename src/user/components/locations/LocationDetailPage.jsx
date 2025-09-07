@@ -183,12 +183,26 @@ import SuggestedServices from './SuggestedServices';
 import { locations } from '../../data/locationsData';
 import { guides, shops, hotels, vehicles } from '../../data/travelData';
 import styles from '../../styles/LocationDetails.module.css';
+import Navbar from '../Navbar';
 
 export const LocationDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [location, setLocation] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbarHeight = 64;
+      const elementPosition =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   useEffect(() => {
     const foundLocation = locations.find(loc => loc.id === parseInt(id));
@@ -237,7 +251,7 @@ export const LocationDetailPage = () => {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 ${styles.locationDetails}`}>
-      {/* Header */}
+      <Navbar onScrollToSection={scrollToSection} />
       <div className="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <button
