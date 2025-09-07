@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { vehicles } from '../../data/mockData';
 import SearchAndFilter from '../SearchAndFilter';
 import VehicleCard from './VehicleCard';
 import VehicleDetail from './VehicleDetail';
 import Navbar from '../Navbar';
+import axios from 'axios';
 
 export const VehiclesSection = () => {
+  const [vehicles, setVehicles] = useState([]); // fixed state name
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [selectedVehicle, setSelectedVehicle] = useState(null);
@@ -14,14 +15,30 @@ export const VehiclesSection = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const vehiclesPerPage = 3; // adjust as needed
 
+  // Fetch vehicles from backend
+  useEffect(() => {
+    axios
+      .get('http://127.0.0.1:8000/api/vehicles')
+      .then((response) => setVehicles(response.data))
+      .catch((error) => console.error('Error fetching vehicles:', error));
+  }, []);
+
+  // Filter vehicles by search + location
   const filteredVehicles = useMemo(() => {
     return vehicles.filter(vehicle => {
-      const matchesSearch = vehicle.name.toLowerCase().includes(searchTerm.toLowerCase());
+      // search filter
+      const matchesSearch = (vehicle?.vehicleName || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      // location filter
       const matchesLocation =
-        selectedLocation === 'All Locations' || vehicle.location === selectedLocation;
+        selectedLocation === 'All Locations' ||
+        (vehicle?.locations || "").includes(selectedLocation);
+
       return matchesSearch && matchesLocation;
     });
-  }, [searchTerm, selectedLocation]);
+  }, [searchTerm, selectedLocation, vehicles]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredVehicles.length / vehiclesPerPage);
@@ -55,17 +72,17 @@ export const VehiclesSection = () => {
   }
 
   const scrollToSection = (sectionId) => {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        const navbarHeight = 64; // Match your navbar height
-        const elementPosition = 
-          element.getBoundingClientRect().top + window.scrollY - navbarHeight;
-        window.scrollTo({
-          top: elementPosition,
-          behavior: 'smooth',
-        });
-      }
-    };
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbarHeight = 64; // Match your navbar height
+      const elementPosition =
+        element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   return (
     <div className="min-h-dvh bg-gray-50 pt-16">
