@@ -106,6 +106,12 @@ export const getMyShops = () => api.get('/my-shops');
 export const createMyShop = (formData) => api.post('/my-shops', formData, {headers: {'Content-Type': 'multipart/form-data'}});
 export const updateMyShop = (id, formData) => api.put(`/my-shops/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});
 export const deleteMyShop = (id) => api.delete(`/my-shops/${id}`);
+// User item APIs
+export const getMyItems = () => api.get('/my-items');
+export const getItemsByAuthenticatedShop = (shopId) => api.get(`/my-shops/${shopId}/items`);
+export const createMyItem = (formData) => api.post('/my-items', formData, {headers: {'Content-Type': 'multipart/form-data'}});
+export const updateMyItem = (id, formData) => api.put(`/my-items/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});
+export const deleteMyItem = (id) => api.delete(`/my-items/${id}`);
 // Admin shop Owner APIs
 export const createShopOwner = (formData) => api.post('/shop-owners', formData);
 export const updateShopOwner = (id, formData) => api.put(`/shop-owners/${id}`, formData);
