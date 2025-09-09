@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Building, ChevronDown, ChevronUp, Plus, Edit3, Trash2, MapPin, User, Mail, Phone, CreditCard, X, Upload } from 'lucide-react';
+import { 
+  Building, ChevronDown, ChevronUp, Plus, Edit3, Trash2, MapPin, 
+  User, Mail, Phone, CreditCard, X, Upload, Package, Tag, DollarSign 
+} from 'lucide-react';
 import {
   getMyShopOwner,
   updateMyShopOwner,
@@ -9,16 +12,24 @@ import {
   updateMyShop,
   deleteMyShop,
   getLocations,
+  getItemsByAuthenticatedShop,
+  createMyItem,
+  updateMyItem,
+  deleteMyItem
 } from '../../../services/api';
 
 const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
   const [shopOwner, setShopOwner] = useState(null);
   const [shops, setShops] = useState([]);
+  const [items, setItems] = useState({}); // { shopId: [items] }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showEditOwnerForm, setShowEditOwnerForm] = useState(false);
   const [showShopForm, setShowShopForm] = useState(false);
+  const [showItemForm, setShowItemForm] = useState(false);
   const [editingShop, setEditingShop] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+  const [expandedShop, setExpandedShop] = useState(null);
   const [availableLocations, setAvailableLocations] = useState([]);
   const [loadingLocations, setLoadingLocations] = useState(false);
   
@@ -36,8 +47,18 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
     locations: []
   });
 
-  const [images, setImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
+  const [itemFormData, setItemFormData] = useState({
+    itemName: '',
+    description: '',
+    price: '',
+    locations: [],
+    shop_id: ''
+  });
+
+  const [shopImages, setShopImages] = useState([]);
+  const [shopImagePreviews, setShopImagePreviews] = useState([]);
+  const [itemImages, setItemImages] = useState([]);
+  const [itemImagePreviews, setItemImagePreviews] = useState([]);
 
   // Fetch data only when expanded
   useEffect(() => {
@@ -62,11 +83,37 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
       
       const shopsResponse = await getMyShops();
       setShops(shopsResponse.data);
+      
+      // Fetch items for each shop
+      const itemsData = {};
+      for (const shop of shopsResponse.data) {
+        try {
+          const itemsResponse = await getItemsByAuthenticatedShop(shop.id);
+          itemsData[shop.id] = itemsResponse.data;
+        } catch (err) {
+          console.error(`Error fetching items for shop ${shop.id}:`, err);
+          itemsData[shop.id] = [];
+        }
+      }
+      setItems(itemsData);
     } catch (err) {
       console.error('Error fetching shop owner data:', err);
       setError('Failed to load shop owner data. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchShopItems = async (shopId) => {
+    try {
+      const response = await getItemsByAuthenticatedShop(shopId);
+      setItems(prev => ({
+        ...prev,
+        [shopId]: response.data
+      }));
+    } catch (err) {
+      console.error(`Error fetching items for shop ${shopId}:`, err);
+      setError('Failed to load items. Please try again.');
     }
   };
 
@@ -96,7 +143,7 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
   };
 
   const handleDeleteOwner = async () => {
-    if (window.confirm('Are you sure you want to delete your shop owner profile? This will also remove all associated shops.')) {
+    if (window.confirm('Are you sure you want to delete your shop owner profile? This will also remove all associated shops and items.')) {
       try {
         await deleteMyShopOwner();
         alert('Shop owner deleted successfully!');
@@ -115,15 +162,13 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
       formData.append('shopAddress', shopFormData.shopAddress);
       formData.append('description', shopFormData.description);
       
-      // Only append locations if they exist
       if (shopFormData.locations && shopFormData.locations.length > 0) {
         shopFormData.locations.forEach(loc => {
           formData.append('locations[]', loc);
         });
       }
 
-      // Append images if they exist
-      images.forEach(image => {
+      shopImages.forEach(image => {
         if (image instanceof File && image.type.startsWith('image/')) {
           formData.append('shopImage[]', image);
         }
@@ -149,10 +194,18 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
   };
 
   const handleDeleteShop = async (shopId) => {
-    if (window.confirm('Are you sure you want to delete this shop?')) {
+    if (window.confirm('Are you sure you want to delete this shop? All items in this shop will also be deleted.')) {
       try {
         await deleteMyShop(shopId);
         setShops(shops.filter(shop => shop.id !== shopId));
+        
+        // Remove items for this shop from state
+        setItems(prev => {
+          const newItems = { ...prev };
+          delete newItems[shopId];
+          return newItems;
+        });
+        
         alert('Shop deleted successfully!');
       } catch (err) {
         console.error('Error deleting shop:', err);
@@ -161,17 +214,111 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
     }
   };
 
+  const handleSaveItem = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('itemName', itemFormData.itemName);
+      formData.append('description', itemFormData.description || '');
+      formData.append('price', itemFormData.price);
+      formData.append('shop_id', itemFormData.shop_id);
+      
+      // Ensure locations is an array before using forEach
+      const locationsArray = Array.isArray(itemFormData.locations) 
+        ? itemFormData.locations 
+        : [];
+      
+      if (locationsArray.length > 0) {
+        locationsArray.forEach(loc => {
+          formData.append('locations[]', loc);
+        });
+      }
+
+      itemImages.forEach(image => {
+        if (image instanceof File && image.type.startsWith('image/')) {
+          formData.append('itemImage[]', image);
+        }
+      });
+
+      let response;
+      if (editingItem) {
+        response = await updateMyItem(editingItem.id, formData);
+        // Update items for this shop
+        setItems(prev => ({
+          ...prev,
+          [itemFormData.shop_id]: prev[itemFormData.shop_id].map(item => 
+            item.id === editingItem.id ? response.data.item : item
+          )
+        }));
+      } else {
+        response = await createMyItem(formData);
+        // Add new item to the shop
+        setItems(prev => ({
+          ...prev,
+          [itemFormData.shop_id]: [...(prev[itemFormData.shop_id] || []), response.data.item]
+        }));
+      }
+      
+      setShowItemForm(false);
+      setEditingItem(null);
+      resetItemForm();
+      alert(editingItem ? 'Item updated successfully!' : 'Item created successfully!');
+    } catch (err) {
+      console.error('Error saving item:', err);
+      setError('Failed to save item. Please try again.');
+    }
+  };
+
+  const handleDeleteItem = async (itemId, shopId) => {
+    if (window.confirm('Are you sure you want to delete this item?')) {
+      try {
+        await deleteMyItem(itemId);
+        setItems(prev => ({
+          ...prev,
+          [shopId]: prev[shopId].filter(item => item.id !== itemId)
+        }));
+        alert('Item deleted successfully!');
+      } catch (err) {
+        console.error('Error deleting item:', err);
+        setError('Failed to delete item.');
+      }
+    }
+  };
+
   const startEditShop = (shop) => {
     setEditingShop(shop);
+    const parsedShopImages = parseShopImages(shop.shopImage);
+  
     setShopFormData({
       shopName: shop.shopName,
       shopAddress: shop.shopAddress,
       description: shop.description || '',
       locations: shop.locations || []
     });
-    setImagePreviews(shop.shopImage ? shop.shopImage.map(img => `http://localhost:8000/storage/${img}`) : []);
-    setImages([]);
+
+    setShopImagePreviews(parsedShopImages.length > 0 
+      ? parsedShopImages.map(img => `http://localhost:8000/storage/${img}`) 
+      : []);
+    setShopImages([]);
     setShowShopForm(true);
+  };
+
+  const startEditItem = (item, shopId) => {
+    setEditingItem(item);
+    const parsedItemImages = parseItemImages(item.itemImage);
+    const parsedLocations = parseLocations(item.locations);
+
+    setItemFormData({
+      itemName: item.itemName,
+      description: item.description || '',
+      price: item.price,
+      locations: parsedLocations,
+      shop_id: shopId
+    });
+    setItemImagePreviews(parsedItemImages.length > 0 
+      ? parsedItemImages.map(img => `http://localhost:8000/storage/${img}`) 
+      : []);
+    setItemImages([]);
+    setShowItemForm(true);
   };
 
   const resetShopForm = () => {
@@ -181,11 +328,23 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
       description: '',
       locations: []
     });
-    setImages([]);
-    setImagePreviews([]);
+    setShopImages([]);
+    setShopImagePreviews([]);
   };
 
-  const handleImageChange = (e) => {
+  const resetItemForm = () => {
+    setItemFormData({
+      itemName: '',
+      description: '',
+      price: '',
+      locations: [],
+      shop_id: ''
+    });
+    setItemImages([]);
+    setItemImagePreviews([]);
+  };
+
+  const handleShopImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     
@@ -194,16 +353,32 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
       ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'].includes(file.type)
     );
     
-    const newImages = [...images, ...validImageFiles];
-    setImages(newImages);
+    const newImages = [...shopImages, ...validImageFiles];
+    setShopImages(newImages);
     
     const newPreviews = validImageFiles.map(file => URL.createObjectURL(file));
-    setImagePreviews(prev => [...prev, ...newPreviews]);
+    setShopImagePreviews(prev => [...prev, ...newPreviews]);
   };
 
-  const removeImage = (index) => {
-    const newImages = [...images];
-    const newPreviews = [...imagePreviews];
+  const handleItemImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    const validImageFiles = files.filter(file => 
+      file.type.startsWith('image/') && 
+      ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'].includes(file.type)
+    );
+    
+    const newImages = [...itemImages, ...validImageFiles];
+    setItemImages(newImages);
+    
+    const newPreviews = validImageFiles.map(file => URL.createObjectURL(file));
+    setItemImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  const removeShopImage = (index) => {
+    const newImages = [...shopImages];
+    const newPreviews = [...shopImagePreviews];
     
     if (newPreviews[index].startsWith('blob:')) {
       URL.revokeObjectURL(newPreviews[index]);
@@ -212,17 +387,89 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
     newImages.splice(index, 1);
     newPreviews.splice(index, 1);
     
-    setImages(newImages);
-    setImagePreviews(newPreviews);
+    setShopImages(newImages);
+    setShopImagePreviews(newPreviews);
   };
 
-  const handleLocationChange = (location) => {
+  const removeItemImage = (index) => {
+    const newImages = [...itemImages];
+    const newPreviews = [...itemImagePreviews];
+    
+    if (newPreviews[index].startsWith('blob:')) {
+      URL.revokeObjectURL(newPreviews[index]);
+    }
+    
+    newImages.splice(index, 1);
+    newPreviews.splice(index, 1);
+    
+    setItemImages(newImages);
+    setItemImagePreviews(newPreviews);
+  };
+
+  const handleShopLocationChange = (location) => {
     setShopFormData(prev => ({
       ...prev,
       locations: prev.locations.includes(location)
         ? prev.locations.filter(l => l !== location)
         : [...prev.locations, location]
     }));
+  };
+
+  const handleItemLocationChange = (location) => {
+    setItemFormData(prev => ({
+      ...prev,
+      locations: prev.locations.includes(location)
+        ? prev.locations.filter(l => l !== location)
+        : [...prev.locations, location]
+    }));
+  };
+
+  const toggleShopExpand = (shopId) => {
+    setExpandedShop(expandedShop === shopId ? null : shopId);
+    if (expandedShop !== shopId && (!items[shopId] || items[shopId].length === 0)) {
+      fetchShopItems(shopId);
+    }
+  };
+
+  const parseShopImages = (shopImage) => {
+    if (Array.isArray(shopImage)) return shopImage;
+    if (typeof shopImage === 'string') {
+      try {
+        return JSON.parse(shopImage);
+      } catch (e) {
+        console.error('Error parsing shopImage JSON:', e);
+        return [];
+      }
+    }
+    return [];
+  };
+
+  // Add this helper function at the top of your component
+  const parseItemImages = (itemImage) => {
+    if (Array.isArray(itemImage)) return itemImage;
+    if (typeof itemImage === 'string') {
+      try {
+        return JSON.parse(itemImage);
+      } catch (e) {
+        console.error('Error parsing itemImage JSON:', e);
+        return [];
+      }
+    }
+    return [];
+  };
+
+  // Add this helper function
+  const parseLocations = (locations) => {
+    if (Array.isArray(locations)) return locations;
+    if (typeof locations === 'string') {
+      try {
+        return JSON.parse(locations);
+      } catch (e) {
+        console.error('Error parsing locations JSON:', e);
+        return [];
+      }
+    }
+    return [];
   };
 
   return (
@@ -236,7 +483,7 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
             </div>
             <div>
               <h3 className="text-2xl font-bold text-white">Shop Owner Dashboard</h3>
-              <p className="text-blue-100">Manage your shop properties</p>
+              <p className="text-blue-100">Manage your shops and items</p>
             </div>
           </div>
           <button
@@ -409,7 +656,7 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
                         Shop Images
                       </label>
                       <div className="flex flex-wrap gap-4 mb-4">
-                        {imagePreviews.map((preview, index) => (
+                        {shopImagePreviews.map((preview, index) => (
                           <div key={index} className="relative h-32 w-32">
                             <img
                               src={preview}
@@ -418,7 +665,7 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
                             />
                             <button
                               type="button"
-                              onClick={() => removeImage(index)}
+                              onClick={() => removeShopImage(index)}
                               className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
                             >
                               <X className="w-4 h-4 text-gray-700" />
@@ -428,7 +675,7 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
                       </div>
                       <div className="flex flex-col">
                         <label 
-                          htmlFor="fileInput"
+                          htmlFor="shopFileInput"
                           className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors w-40"
                         >
                           <Upload className="w-4 h-4 mr-2" />
@@ -436,8 +683,8 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
                         </label>
                         <input
                           type="file"
-                          id="fileInput"
-                          onChange={handleImageChange}
+                          id="shopFileInput"
+                          onChange={handleShopImageChange}
                           accept="image/*"
                           multiple
                           className="hidden"
@@ -483,7 +730,7 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
                               <input
                                 type="checkbox"
                                 checked={shopFormData.locations.includes(location)}
-                                onChange={() => handleLocationChange(location)}
+                                onChange={() => handleShopLocationChange(location)}
                                 className="mr-2"
                               />
                               {location}
@@ -515,6 +762,158 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
                 </div>
               )}
 
+              {/* Item Form */}
+              {showItemForm && (
+                <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                  <h5 className="text-lg font-semibold mb-4">
+                    {editingItem ? 'Edit Item' : 'Add New Item'}
+                  </h5>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Shop *
+                      </label>
+                      <select
+                        value={itemFormData.shop_id}
+                        onChange={(e) => setItemFormData({...itemFormData, shop_id: e.target.value})}
+                        required
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        disabled={editingItem} // Can't change shop for existing item
+                      >
+                        <option value="">Select a Shop</option>
+                        {shops.map(shop => (
+                          <option key={shop.id} value={shop.id}>
+                            {shop.shopName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Item Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={itemFormData.itemName}
+                        onChange={(e) => setItemFormData({...itemFormData, itemName: e.target.value})}
+                        required
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Price *
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={itemFormData.price}
+                        onChange={(e) => setItemFormData({...itemFormData, price: e.target.value})}
+                        required
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Item Images
+                      </label>
+                      <div className="flex flex-wrap gap-4 mb-4">
+                        {itemImagePreviews.map((preview, index) => (
+                          <div key={index} className="relative h-32 w-32">
+                            <img
+                              src={preview}
+                              alt={`Preview ${index}`}
+                              className="h-full w-full object-cover rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeItemImage(index)}
+                              className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+                            >
+                              <X className="w-4 h-4 text-gray-700" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex flex-col">
+                        <label 
+                          htmlFor="itemFileInput"
+                          className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors w-40"
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          <span className="text-sm">Upload Images</span>
+                        </label>
+                        <input
+                          type="file"
+                          id="itemFileInput"
+                          onChange={handleItemImageChange}
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        value={itemFormData.description}
+                        onChange={(e) => setItemFormData({...itemFormData, description: e.target.value})}
+                        rows="3"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Available Locations
+                      </label>
+                      {loadingLocations ? (
+                        <div className="text-gray-500">Loading locations...</div>
+                      ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {availableLocations.map(location => (
+                            <label key={location} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={itemFormData.locations.includes(location)}
+                                onChange={() => handleItemLocationChange(location)}
+                                className="mr-2"
+                              />
+                              {location}
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        onClick={handleSaveItem}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        {editingItem ? 'Update Item' : 'Add Item'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowItemForm(false);
+                          setEditingItem(null);
+                          resetItemForm();
+                        }}
+                        className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Shops Section */}
               <div className="flex justify-between items-center mb-6">
                 <h4 className="text-xl font-semibold text-gray-800">My Shops ({shops.length})</h4>
@@ -533,56 +932,202 @@ const ShopOwnerProfile = ({ isExpanded, onToggleExpand, userId }) => {
                   <p>No shops found. Add your first shop to get started.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-6">
                   {shops.map((shop) => (
-                    <div key={shop.id} className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
-                      {shop.shopImage && shop.shopImage.length > 0 ? (
-                        <img
-                          src={`http://localhost:8000/storage/${shop.shopImage[0]}`}
-                          alt={shop.shopName}
-                          className="w-full h-48 object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                          <Building className="size-12 text-gray-400" />
-                        </div>
-                      )}
-                      <div className="p-4">
-                        <h5 className="font-semibold text-lg text-gray-800 mb-2">{shop.shopName}</h5>
-                        <div className="flex items-center text-gray-600 mb-2">
-                          <MapPin className="size-4 mr-1" />
-                          <span className="text-sm">{shop.shopAddress}</span>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{shop.description}</p>
-                        {shop.locations && shop.locations.length > 0 && (
-                          <div className="mb-3">
-                            <p className="text-xs text-gray-500">Locations:</p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {shop.locations.map((location, index) => (
-                                <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                                  {location}
-                                </span>
-                              ))}
-                            </div>
+                    <div key={shop.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                      <div className="bg-gray-50 p-4 flex justify-between items-center">
+                        <div className="flex items-center">
+                          <button
+                            onClick={() => toggleShopExpand(shop.id)}
+                            className="mr-3 text-gray-600 hover:text-gray-800"
+                          >
+                            {expandedShop === shop.id ? (
+                              <ChevronUp className="size-5" />
+                            ) : (
+                              <ChevronDown className="size-5" />
+                            )}
+                          </button>
+
+                          {/* Shop thumbnail */}
+                          {(() => {
+                            const shopImages = parseShopImages(shop.shopImage);
+                            return shopImages.length > 0 ? (
+                              <img
+                                src={`http://localhost:8000/storage/${shopImages[0]}`}
+                                alt={shop.shopName}
+                                className="w-12 h-12 object-cover rounded-lg mr-3 border border-gray-200"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
+                                <Building className="size-6 text-gray-400" />
+                              </div>
+                            );
+                          })()}
+
+                          <div>
+                            <h5 className="font-semibold text-lg text-gray-800">{shop.shopName}</h5>
+                            <span className="ml-3 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                              {items[shop.id]?.length || 0} items
+                            </span>
                           </div>
-                        )}
+                        </div>
                         <div className="flex gap-2">
                           <button
+                            onClick={() => {
+                              setItemFormData(prev => ({ ...prev, shop_id: shop.id }));
+                              setShowItemForm(true);
+                              setEditingItem(null);
+                              resetItemForm();
+                            }}
+                            className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors text-sm"
+                          >
+                            <Plus className="size-4" />
+                            Add Item
+                          </button>
+                          <button
                             onClick={() => startEditShop(shop)}
-                            className="flex-1 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 flex items-center justify-center gap-2 text-sm transition-colors"
+                            className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors text-sm"
                           >
                             <Edit3 className="size-4" />
-                            Edit
+                            Edit Shop
                           </button>
                           <button
                             onClick={() => handleDeleteShop(shop.id)}
-                            className="flex-1 bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 flex items-center justify-center gap-2 text-sm transition-colors"
+                            className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 flex items-center gap-2 transition-colors text-sm"
                           >
                             <Trash2 className="size-4" />
                             Delete
                           </button>
                         </div>
                       </div>
+
+                      {expandedShop === shop.id && (
+                        <div className="p-4 bg-white">
+                          {/* Shop Images Section - Add this at the top */}
+                          {(() => {
+                            const shopImages = parseShopImages(shop.shopImage);
+                            return shopImages.length > 0 && (
+                              <div className="mb-6">
+                                <h6 className="font-semibold text-gray-800 mb-3">Shop Images</h6>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                  {shopImages.map((image, index) => (
+                                    <div key={index} className="relative h-32 w-full">
+                                      <img
+                                        src={`http://localhost:8000/storage/${image}`}
+                                        alt={`${shop.shopName} - Image ${index + 1}`}
+                                        className="h-full w-full object-cover rounded-lg border border-gray-200"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div className="flex items-center">
+                              <MapPin className="size-4 text-gray-600 mr-2" />
+                              <span className="text-sm text-gray-600">{shop.shopAddress}</span>
+                            </div>
+                            {shop.locations && shop.locations.length > 0 && (
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">Available in:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {shop.locations.map((location, index) => (
+                                    <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                      {location}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {shop.description && (
+                            <p className="text-gray-600 mb-6">{shop.description}</p>
+                          )}
+
+                          {/* Items for this shop */}
+                          <div className="mt-6">
+                            <h6 className="font-semibold text-gray-800 mb-4 flex items-center">
+                              <Package className="size-5 mr-2" />
+                              Items ({items[shop.id]?.length || 0})
+                            </h6>
+                            
+                            {!items[shop.id] || items[shop.id].length === 0 ? (
+                              <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                                <Package className="size-12 mx-auto mb-4 text-gray-400" />
+                                <p>No items found in this shop.</p>
+                                <button
+                                  onClick={() => {
+                                    setItemFormData(prev => ({ ...prev, shop_id: shop.id }));
+                                    setShowItemForm(true);
+                                  }}
+                                  className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                                >
+                                  Add Your First Item
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {items[shop.id].map((item) => (
+                                  <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    {(() => {
+                                      const itemImages = parseItemImages(item.itemImage);
+                                      return itemImages.length > 0 ? (
+                                        <img
+                                          src={`http://localhost:8000/storage/${itemImages[0]}`}
+                                          alt={item.itemName}
+                                          className="w-full h-32 object-cover rounded-lg mb-3"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center mb-3">
+                                          <Package className="size-8 text-gray-400" />
+                                        </div>
+                                      );
+                                    })()}
+                                    
+                                    <h6 className="font-semibold text-gray-800 mb-2">{item.itemName}</h6>
+                                    
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="flex items-center text-green-600 font-semibold">
+                                        <DollarSign className="size-4 mr-1" />
+                                        {item.price}
+                                      </span>
+                                      {item.locations && item.locations.length > 0 && (
+                                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                          {item.locations.length} locations
+                                        </span>
+                                      )}
+                                    </div>
+                                    
+                                    {item.description && (
+                                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+                                    )}
+                                    
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => startEditItem(item, shop.id)}
+                                        className="flex-1 bg-blue-50 text-blue-600 px-2 py-1 rounded text-sm hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
+                                      >
+                                        <Edit3 className="size-3" />
+                                        Edit
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteItem(item.id, shop.id)}
+                                        className="flex-1 bg-red-50 text-red-600 px-2 py-1 rounded text-sm hover:bg-red-100 transition-colors flex items-center justify-center gap-1"
+                                      >
+                                        <Trash2 className="size-3" />
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
