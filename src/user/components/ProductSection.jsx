@@ -40,15 +40,15 @@ const ProductSection = ({ id, title, data, type }) => {
           <div key={item.id} className={cardClass} style={{ animationDelay: `${index * 100}ms` }}>
             <img 
               src={item.image} 
-              alt={item.name} 
+              alt={item.locationName} 
               className="w-full h-48 object-cover" 
               loading="lazy"
             />
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">{item.name}</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">{item.locationName}</h3>
               <div className="flex items-center text-gray-600">
                 <MapPin className="size-4 mr-2" />
-                <span>{item.location}</span>
+                <span>{item.province}</span>
               </div>
             </div>
           </div>
@@ -60,16 +60,16 @@ const ProductSection = ({ id, title, data, type }) => {
             <div className="relative overflow-hidden">
               <img 
                 src={item.photo} 
-                alt={item.name} 
+                alt={item.guideName} 
                 className="w-full h-48 object-cover" 
                 loading="lazy"
               />
             </div>
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">{item.name}</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">{item.guideName}</h3>
               <div className="flex items-center text-gray-600">
                 <MapPin className="size-4 mr-2" />
-                <span>{item.location}</span>
+                <span>{item.locations}</span>
               </div>
             </div>
           </div>
@@ -90,7 +90,7 @@ const ProductSection = ({ id, title, data, type }) => {
               <h3 className="text-xl font-semibold text-gray-800 mb-2">{item.shopName}</h3>
               <div className="flex items-center text-gray-600">
                 <MapPin className="size-4 mr-2" />
-                <span>{item.location}</span>
+                <span>{item.locations}</span>
               </div>
             </div>
           </div>
@@ -102,17 +102,17 @@ const ProductSection = ({ id, title, data, type }) => {
             <div className="relative overflow-hidden group">
               <img 
                 src={item.image} 
-                alt={item.name} 
+                alt={item.hotelName} 
                 className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110" 
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
             <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2 animate-flip-in">{item.name}</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 animate-flip-in">{item.hotelName}</h3>
               <div className="flex items-center text-gray-600">
                 <MapPin className="size-4 mr-2" />
-                <span>{item.location}</span>
+                <span>{item.locations}</span>
               </div>
             </div>
           </div>
@@ -129,7 +129,7 @@ const ProductSection = ({ id, title, data, type }) => {
             />
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">{item.vehicleName}</h3>
-              <p className="text-gray-600 mb-2">Owner: {item.ownerName}</p>
+              <p className="text-gray-600 mb-2">Owner: {item.vehicle_owner?.vehicleOwnerName}</p>
               <div className="flex items-center text-green-600 font-semibold">
                 <DollarSign className="size-4 mr-1" />
                 <span>${item.pricePerDay}/day</span>
