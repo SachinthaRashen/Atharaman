@@ -73,7 +73,7 @@ export const VehicleCard = ({ vehicle, onClick }) => {
         </div>
         
         <p className="text-sm text-gray-500">
-          Owner: {vehicle?.ownerName || "Unknown"}
+          Owner: {vehicle.vehicle_owner?.vehicleOwnerName}
         </p>
       </div>
     </div>
