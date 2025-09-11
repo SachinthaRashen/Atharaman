@@ -1,22 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, ChevronLeft, ChevronRight, Star} from 'lucide-react';
+import { ArrowLeft, MapPin, ChevronLeft, ChevronRight, Star, Mountain} from 'lucide-react';
 import WeatherWidget from './WeatherWidget';
 import styles from '../../styles/LocationDetails.module.css';
 import Navbar from '../Navbar';
-import { getReviewsByEntity, getGuidesByLocation } from '../../../services/api';
+import {
+  getReviewsByEntity,
+  getGuidesByLocation,
+  getShopsByLocation,
+  getHotelsByLocation,
+  getVehiclesByLocation
+} from '../../../services/api';
 import ReviewSection from '../ReviewSection';
 import { GuideCard } from '../guides/GuideCard';
 import GuideDetail from '../guides/GuideDetail';
+import { ShopCard } from '../shops/ShopCard';
+import ShopDetail from '../shops/ShopDetail';
+import { HotelCard } from '../hotels/HotelCard';
+import HotelDetail from '../hotels/HotelDetail';
+import { VehicleCard } from '../vehicles/VehicleCard';
+import VehicleDetail from '../vehicles/VehicleDetail';
 
 const LocationDetail = ({ location, onBack }) => {
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
   const [reviewsLoading, setReviewsLoading] = useState(true);
-  const [guides, setGuides] = useState([]);
-  const [guidesLoading, setGuidesLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [guides, setGuides] = useState([]);
+  const [shops, setShops] = useState([]);
+  const [hotels, setHotels] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedGuide, setSelectedGuide] = useState(null);
+  const [selectedShop, setSelectedShop] = useState(null);
+  const [selectedHotel, setSelectedHotel] = useState(null);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,19 +64,79 @@ const LocationDetail = ({ location, onBack }) => {
     const fetchGuides = async () => {
       if (location?.locationName) {
         try {
-          setGuidesLoading(true);
+          setLoading(true);
           const response = await getGuidesByLocation(location.locationName);
           setGuides(response.data);
         } catch (error) {
           console.error('Error fetching guides:', error);
         } finally {
-          setGuidesLoading(false);
+          setLoading(false);
         }
       }
     };
 
     if (location) {
       fetchGuides();
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const fetchShops = async () => {
+      if (location?.locationName) {
+        try {
+          setLoading(true);
+          const response = await getShopsByLocation(location.locationName);
+          setShops(response.data);
+        } catch (error) {
+          console.error('Error fetching shops:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    if (location) {
+      fetchShops();
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const fetchHotels = async () => {
+      if (location?.locationName) {
+        try {
+          setLoading(true);
+          const response = await getHotelsByLocation(location.locationName);
+          setHotels(response.data);
+        } catch (error) {
+          console.error('Error fetching hotels:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    if (location) {
+      fetchHotels();
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      if (location?.locationName) {
+        try {
+          setLoading(true);
+          const response = await getVehiclesByLocation(location.locationName);
+          setVehicles(response.data);
+        } catch (error) {
+          console.error('Error fetching vehicles:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    if (location) {
+      fetchVehicles();
     }
   }, [location]);
 
@@ -118,8 +196,44 @@ const LocationDetail = ({ location, onBack }) => {
     setSelectedGuide(null);
   };
 
+  const handleShopClick = (shop) => {
+    setSelectedShop(shop);
+  };
+
+  const handleShopBack = () => {
+    setSelectedShop(null);
+  };
+
+  const handleHotelClick = (hotel) => {
+    setSelectedHotel(hotel);
+  };
+
+  const handleHotelBack = () => {
+    setSelectedHotel(null);
+  };
+
+  const handleVehicleClick = (vehicle) => {
+    setSelectedVehicle(vehicle);
+  };
+
+  const handleVehicleBack = () => {
+    setSelectedVehicle(null);
+  };
+
   if (selectedGuide) {
     return <GuideDetail guide={selectedGuide} onBack={handleGuideBack} />;
+  }
+
+  if (selectedShop) {
+    return <ShopDetail shop={selectedShop} onBack={handleShopBack} />;
+  }
+
+  if (selectedHotel) {
+    return <HotelDetail hotel={selectedHotel} onBack={handleHotelBack} />;
+  }
+
+  if (selectedVehicle) {
+    return <VehicleDetail vehicle={selectedVehicle} onBack={handleVehicleBack} />;
   }
 
   if (!location) {
@@ -199,6 +313,10 @@ const LocationDetail = ({ location, onBack }) => {
             <div className={`absolute bottom-8 left-8 text-white ${styles.animateSlideInUp}`}>
               <h1 className="text-4xl font-bold mb-2">{location.locationName}</h1>
               <div className="flex items-center space-x-2 text-lg">
+                <Mountain size={20} />
+                <span>{location.locationType}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-lg">
                 <MapPin size={20} />
                 <span>{location.province}</span>
               </div>
@@ -238,7 +356,7 @@ const LocationDetail = ({ location, onBack }) => {
                 {/* Guides Section */}
                 <div className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger2}`}>
                   <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Guides</h2>
-                  {guidesLoading ? (
+                  {loading ? (
                     <div className="flex justify-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                     </div>
@@ -256,6 +374,72 @@ const LocationDetail = ({ location, onBack }) => {
                     <p className="text-gray-500 text-center py-8">No guides available for this location.</p>
                   )}
                 </div>
+
+                {/* Hotels Section */}
+                <div className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger2}`}>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Nearby Shops</h2>
+                  {loading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    </div>
+                  ) : shops.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {shops.map(shop => (
+                        <ShopCard
+                          key={shop.id}
+                          guide={shop}
+                          onClick={handleShopClick}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">No shops nearby for this location.</p>
+                  )}
+                </div>
+
+                {/* Hotels Section */}
+                <div className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger2}`}>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Nearby Hotels</h2>
+                  {loading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    </div>
+                  ) : hotels.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {hotels.map(hotel => (
+                        <HotelCard
+                          key={hotel.id}
+                          guide={hotel}
+                          onClick={handleHotelClick}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">No hotels nearby for this location.</p>
+                  )}
+                </div>
+
+                {/* Vehicles Section */}
+                <div className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger2}`}>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Vehicles</h2>
+                  {loading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    </div>
+                  ) : vehicles.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {vehicles.map(vehicle => (
+                        <VehicleCard 
+                          key={vehicle.id} 
+                          guide={vehicle} 
+                          onClick={handleVehicleClick}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">No vehicles available for this location.</p>
+                  )}
+                </div>
               </div>
 
               {/* Sidebar */}
@@ -269,6 +453,10 @@ const LocationDetail = ({ location, onBack }) => {
                 <div className={`bg-white rounded-2xl shadow-lg p-6 ${styles.animateSlideInRight} ${styles.animateStagger1}`}>
                   <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Info</h3>
                   <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Type</span>
+                      <span className="font-medium capitalize">{location.locationType}</span>
+                    </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Province</span>
                       <span className="font-medium capitalize">{location.province}</span>

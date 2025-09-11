@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import axios from 'axios';
 import SearchAndFilter from '../SearchAndFilter';
 import GuideCard from './GuideCard';
 import GuideDetail from './GuideDetail';
 import Navbar from '../Navbar';
+import axios from 'axios';
 
 export const GuidesSection = () => {
   const [guides, setGuides] = useState([]);
@@ -11,8 +11,7 @@ export const GuidesSection = () => {
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [selectedGuide, setSelectedGuide] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-
-  const guidesPerPage = 3; // adjust as needed
+  const guidesPerPage = 3;
 
   // Fetch data
   useEffect(() => {
@@ -22,7 +21,6 @@ export const GuidesSection = () => {
       .catch((error) => console.error('Error fetching guides:', error));
   }, []);
 
-  // Filtering
   const filteredGuides = useMemo(() => {
     return guides.filter((guide) => {
       const matchesSearch = guide.guideName

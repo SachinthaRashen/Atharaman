@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Globe, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Globe, Image as ImageIcon, Mountain } from 'lucide-react';
 
 const LocationView = ({ location }) => {
   if (!location) return null;
@@ -30,6 +30,10 @@ const LocationView = ({ location }) => {
           <div className="flex items-center text-sm text-gray-500">
             <Globe className="w-4 h-4 mr-1" />
             <span>{location.province} Province</span>
+          </div>
+          <div className="flex items-center text-sm text-gray-500 mt-2">
+            <Mountain className="w-4 h-4 mr-1" />
+            <span>{location.locationType}</span>
           </div>
           <div className="mt-2 text-sm text-gray-500">
             <span>Coordinates: {location.latitude}, {location.longitude}</span>
