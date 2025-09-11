@@ -4,6 +4,7 @@ import { MapPin, X, Upload, Loader } from 'lucide-react';
 const LocationForm = ({ location, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     locationName: location?.locationName || '',
+    locationType: location?.locationType || '',
     province: location?.province || '',
     shortDescription: location?.shortDescription || '',
     longDescription: location?.longDescription || '',
@@ -16,6 +17,7 @@ const LocationForm = ({ location, onSave, onCancel }) => {
   const [loading, setLoading] = useState(false);
   
   const provinces = ['Central', 'Eastern', 'North Central', 'Northern', 'North Western', 'Sabaragamuwa', 'Southern', 'Uva', 'Western'];
+  const locationTypes = ['Mountain', 'Rock', 'Plain', 'Valley', 'Beach', 'Cliff', 'Desert', 'Forest', 'Coast', 'Temple/Historic Building', 'Lake', 'River', 'Island', 'Road', 'Village'];
 
   useEffect(() => {
     if (location) {
@@ -51,6 +53,7 @@ const LocationForm = ({ location, onSave, onCancel }) => {
     // Create FormData object for file uploads
     const formDataObj = new FormData();
     formDataObj.append('locationName', formData.locationName);
+    formDataObj.append('locationType', formData.locationType);
     formDataObj.append('province', formData.province);
     formDataObj.append('shortDescription', formData.shortDescription);
     formDataObj.append('longDescription', formData.longDescription);
@@ -93,7 +96,9 @@ const LocationForm = ({ location, onSave, onCancel }) => {
             placeholder="Enter location name"
           />
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Province *
@@ -108,6 +113,24 @@ const LocationForm = ({ location, onSave, onCancel }) => {
             <option value="">Select Province</option>
             {provinces.map(province => (
               <option key={province} value={province}>{province}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Location Type *
+          </label>
+          <select
+            name="locationType"
+            value={formData.locationType}
+            onChange={handleInputChange}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select Location Type</option>
+            {locationTypes.map(locationType => (
+              <option key={locationType} value={locationType}>{locationType}</option>
             ))}
           </select>
         </div>

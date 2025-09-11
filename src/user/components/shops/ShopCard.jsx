@@ -1,17 +1,24 @@
 import React from 'react';
 import { MapPin, Star, Package } from 'lucide-react';
+import { getShopImageUrls, getMainShopImage } from '../../../helpers/ImageHelpers';
 
 export const ShopCard = ({ shop, onClick }) => {
+  const imageUrls = getShopImageUrls(shop);
+  const mainImage = getMainShopImage(shop);
+
   return (
     <div
       onClick={() => onClick(shop)}
       className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
     >
       <div className="relative h-48 overflow-hidden bg-gradient-to-br from-emerald-100 to-emerald-200">
-        <img
-          src={shop.shopImage}
+        <img 
+          src={mainImage}
           alt={shop.shopName}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            e.target.src = "/default-shop.jpg";
+          }}
         />
         <div className="flex items-center justify-center h-full">
           <Package className="size-16 text-emerald-600 group-hover:scale-110 transition-transform" />

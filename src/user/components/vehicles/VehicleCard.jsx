@@ -1,18 +1,24 @@
 import React from 'react';
 import { MapPin, Star, DollarSign, Fuel, UserCheck } from 'lucide-react';
+import { getVehicleImageUrls, getMainVehicleImage } from '../../../helpers/ImageHelpers';
 
 export const VehicleCard = ({ vehicle, onClick }) => {
+  const imageUrls = getVehicleImageUrls(vehicle);
+  const mainImage = getMainVehicleImage(vehicle);
+
   return (
-    <div 
+    <div
       onClick={() => onClick(vehicle)}
       className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
     >
       <div className="relative h-48 overflow-hidden">
-        <img 
-          src={vehicle?.vehicleImages?.[0] || "/assets/placeholder.png"} // ✅ safe fallback
-          alt={vehicle?.vehicleName || "Vehicle"}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-          loading="lazy"
+        <img
+          src={mainImage}
+          alt={vehicle.vehicleName}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            e.target.src = "/default-vehicle.jpg";
+          }}
         />
         {vehicle?.rating && (
           <div className="absolute top-2 right-2 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
@@ -37,7 +43,7 @@ export const VehicleCard = ({ vehicle, onClick }) => {
           </div>
         )}
       </div>
-      
+
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-xl font-semibold text-gray-900">

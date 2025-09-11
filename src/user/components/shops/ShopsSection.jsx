@@ -10,10 +10,8 @@ const ShopsSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [selectedShop, setSelectedShop] = useState(null);
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const shopsPerPage = 6; // how many shops to show per page
+  const shopsPerPage = 6;
 
   // Fetch shops from API
   useEffect(() => {
@@ -26,10 +24,11 @@ const ShopsSection = () => {
   const filteredShops = useMemo(() => {
     return shops.filter(shop => {
       const matchesSearch = shop.shopName
-      ?.toLowerCase()
-      .includes(searchTerm.toLowerCase());
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
       const matchesLocation =
-      selectedLocation === 'All Locations' || (shop.locations && shop.locations.includes(selectedLocation));
+        selectedLocation === 'All Locations' ||
+        (shop.locations && shop.locations.includes(selectedLocation));
       return matchesSearch && matchesLocation;
     });
   }, [searchTerm, selectedLocation, shops]);
@@ -60,12 +59,10 @@ const ShopsSection = () => {
 
   if (selectedShop) {
     return (
-      <ShopDetail 
-        shop={selectedShop} 
-        onBack={() => setSelectedShop(null)}
-      />
+      <ShopDetail shop={selectedShop} onBack={() => setSelectedShop(null)} />
     );
   }
+
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -84,8 +81,12 @@ const ShopsSection = () => {
       <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Camping Gear Shops</h2>
-          <p className="text-gray-600">Find everything you need for your outdoor adventure</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Camping Gear Shops
+          </h2>
+          <p className="text-gray-600">
+            Find everything you need for your outdoor adventure
+          </p>
         </div>
 
         <SearchAndFilter
@@ -99,18 +100,16 @@ const ShopsSection = () => {
         {/* Shops Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {currentShops.map((shop) => (
-            <ShopCard
-              key={shop.id}
-              shop={shop}
-              onClick={setSelectedShop}
-            />
+            <ShopCard key={shop.id} shop={shop} onClick={setSelectedShop} />
           ))}
         </div>
 
         {/* No Results */}
         {filteredShops.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No shops found matching your criteria.</p>
+            <p className="text-gray-500 text-lg">
+              No shops found matching your criteria.
+            </p>
           </div>
         )}
 
