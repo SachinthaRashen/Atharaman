@@ -1,19 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, MapPin, ArrowLeft, ChevronDown, Grid, List } from 'lucide-react';
 import LocationCard from './LocationCard';
+import LocationDetail from './LocationDetail';
 import { locations } from '../../data/locationsData';
 import styles from '../../styles/LocationsPage.module.css';
 import Navbar from '../Navbar';
+import SearchAndFilter from '../SearchAndFilter';
+import { u } from 'framer-motion/client';
+import axios from 'axios';
 
 export const LocationsPage = () => {
   const navigate = useNavigate();
+  const [locations, setLocations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const locationsPerPage = 9;
+
+  //Fetch locations from data file or API
+  useEffect(() => {
+    axios
+      .get('http://localhost:8000/api/locations')
+      .then((response) =>  setLocations(response.data))
+      .catch((error) => console.error('Error fetching locations:', error));
+  }, []);
+
+  // Category filters
 
   const filters = [
     { value: 'all', label: 'All Locations' },
@@ -24,12 +40,19 @@ export const LocationsPage = () => {
     { value: 'lake', label: 'Lakes' }
   ];
 
-  const filteredLocations = locations.filter(location => {
-    const matchesSearch = location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         location.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = selectedFilter === 'all' || location.category === selectedFilter;
-    return matchesSearch && matchesFilter;
-  });
+  // Filtering
+  const filteredLocations = useMemo(() => {
+    return locations.filter((location) => {
+      const matchesSearch = location.locationName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesFilter =
+        selectedFilter === 'all' || location.category === selectedFilter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [searchTerm, selectedFilter, locations]);
+
+  // Pagination
 
   const totalPages = Math.ceil(filteredLocations.length / locationsPerPage);
   const startIndex = (currentPage - 1) * locationsPerPage;
@@ -68,91 +91,67 @@ export const LocationsPage = () => {
     }
   };
 
+  if (selectedLocation) {
+    return (
+      <LocationDetail location={selectedLocation} onBack={() => setSelectedLocation(null)} />
+    );
+  }
+
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 ${styles.locationsPage}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16 ${styles.locationsPage}`}>
       <Navbar onScrollToSection={scrollToSection} />
-      <div className="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between mb-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Discover Your Next Adventure
+          </h2>
+          <p className="text-gray-600">
+            Explore our curated list of breathtaking locations around the world.
+          </p>
+        </div>
+
+        {/* Search and Filters */}
+        <SearchAndFilter
+          searchTerm={searchTerm }
+          onSearchChange={setSearchTerm}
+          selectedFilter={selectedFilter}
+          onFilterChange={setSelectedFilter}
+          placeholder='Search locations...'
+        />
+        {/* category filter */}
+        <div className="flex justify-between items-center mt-4">
+          <div className="relative">
             <button
-              onClick={() => navigate('/')}
-              className={`flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors ${styles.animateSlideInLeft}`}
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-50 transition-all"
             >
-              <ArrowLeft size={20} />
-              <span>Back to Home</span>
+              <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+              <span className="text-gray-700">
+                {filters.find(f => f.value === selectedFilter)?.label || 'Select Category'}
+              </span>
+              <ChevronDown className="w-4 h-4 ml-2 text-gray-500" />
             </button>
-            
-            <div className={`flex items-center space-x-4 ${styles.animateSlideInRight}`}>
-              <button
-                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
-              >
-                {viewMode === 'grid' ? <List size={20} /> : <Grid size={20} />}
-              </button>
-            </div>
-          </div>
-
-          <div className={`text-center mb-8 ${styles.animateFadeInUp}`}>
-            <h1 className={`text-4xl font-bold text-gray-900 mb-4 ${styles.animateZoomIn}`}>
-              Discover Amazing Locations
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Explore breathtaking natural destinations around the world
-            </p>
-          </div>
-
-          {/* Search and Filter Bar */}
-          <div className={`flex flex-col md:flex-row gap-4 ${styles.animateSlideInUp}`}>
-            {/* Search Bar */}
-            <div className="flex-1 relative">
-              <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search locations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${styles.searchInput}`}
-              />
-            </div>
-
-            {/* Filter Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`flex items-center space-x-2 px-6 py-3 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all ${styles.filterButton}`}
-              >
-                <Filter size={20} />
-                <span>{filters.find(f => f.value === selectedFilter)?.label}</span>
-                <ChevronDown size={16} className={`transform transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isFilterOpen && (
-                <div className={`absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 ${styles.animateSlideDown}`}>
-                  {filters.map((filter) => (
-                    <button
-                      key={filter.value}
-                      onClick={() => {
-                        setSelectedFilter(filter.value);
-                        setIsFilterOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors ${
-                        selectedFilter === filter.value ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
-                      }`}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Results Count */}
-          <div className={`mt-4 text-gray-600 ${styles.animateFadeIn}`}>
-            Showing {currentLocations.length} of {filteredLocations.length} locations
+            {isFilterOpen && (
+              <div className="absolute mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                {filters.map(filter => (
+                  <div
+                    key={filter.value}
+                    onClick={() => {
+                      setSelectedFilter(filter.value);
+                      setIsFilterOpen(false);
+                    }}
+                    className={`flex items-center px-4 py-2 hover:bg-gray-100 transition-all ${
+                      filter.value === selectedFilter ? 'bg-gray-100' : ''
+                    }`}
+                  >
+                    <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                    <span className="text-gray-700">{filter.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      </div>
 
       {/* Locations Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -213,6 +212,7 @@ export const LocationsPage = () => {
           </div>
         )}
       </div>
+      </main>
     </div>
   );
 };

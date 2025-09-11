@@ -22,7 +22,8 @@ import HotelsSection from './user/components/hotels/HotelsSection';
 import ShopsSection from './user/components/shops/ShopsSection';
 import VehiclesSection from './user/components/vehicles/VehiclesSection';
 import {LocationsPage} from './user/components/locations/LocationsPage';
-import { LocationDetailPage } from './user/components/locations/LocationDetailPage';
+import LocationDetail from "./user/components/locations/LocationDetail";
+
 // User Pages
 import Home from './user/pages/Home';
 import UserProfilePage from './user/pages/UserProfilePage';
@@ -123,7 +124,7 @@ function AppContent() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/locations" element={<LocationsPage />} />
-            <Route path="/location/:id" element={<LocationDetailPage />} />
+            <Route path="/location/:id" element={<LocationDetail />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
           </Routes>
         )}
