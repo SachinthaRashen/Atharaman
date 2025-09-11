@@ -24,9 +24,10 @@ const ReviewSection = ({ entityType, entityId }) => {
     try {
       setIsLoading(true);
       const response = await getReviewsByEntity(entityType, entityId);
-      setReviews(response.data);
+      setReviews(response.data || []); // Handle case where response.data might be undefined
     } catch (error) {
       console.error('Error fetching reviews:', error);
+      setReviews([]); // Set empty array on error
     } finally {
       setIsLoading(false);
     }

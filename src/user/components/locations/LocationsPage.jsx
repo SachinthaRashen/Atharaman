@@ -3,34 +3,61 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Filter, MapPin, ArrowLeft, ChevronDown, Grid, List } from 'lucide-react';
 import LocationCard from './LocationCard';
 import LocationDetail from './LocationDetail';
-import { locations } from '../../data/locationsData';
 import styles from '../../styles/LocationsPage.module.css';
 import Navbar from '../Navbar';
 import SearchAndFilter from '../SearchAndFilter';
-import { u } from 'framer-motion/client';
 import axios from 'axios';
 
 export const LocationsPage = () => {
   const navigate = useNavigate();
   const [locations, setLocations] = useState([]);
+  const [locationRatings, setLocationRatings] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const locationsPerPage = 9;
 
-  //Fetch locations from data file or API
+  // Fetch locations from API
   useEffect(() => {
-    axios
-      .get('http://localhost:8000/api/locations')
-      .then((response) =>  setLocations(response.data))
-      .catch((error) => console.error('Error fetching locations:', error));
+    const fetchLocations = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get('http://localhost:8000/api/locations');
+        setLocations(response.data);
+        
+        // Fetch ratings for each location
+        const ratings = {};
+        for (const location of response.data) {
+          try {
+            const reviewsResponse = await axios.get(`http://localhost:8000/api/reviews/entity/location/${location.id}`);
+            if (reviewsResponse.data.length > 0) {
+              const totalRating = reviewsResponse.data.reduce((sum, review) => sum + Number(review.rating), 0);
+              ratings[location.id] = Number((totalRating / reviewsResponse.data.length).toFixed(1));
+            } else {
+              ratings[location.id] = 0;
+            }
+          } catch (error) {
+            console.error('Error fetching reviews for location:', location.id, error);
+            ratings[location.id] = 0;
+          }
+        }
+        console.log('Location ratings:', locationRatings);
+        setLocationRatings(ratings);
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLocations();
   }, []);
 
   // Category filters
-
   const filters = [
     { value: 'all', label: 'All Locations' },
     { value: 'mountain', label: 'Mountains' },
@@ -53,13 +80,12 @@ export const LocationsPage = () => {
   }, [searchTerm, selectedFilter, locations]);
 
   // Pagination
-
   const totalPages = Math.ceil(filteredLocations.length / locationsPerPage);
   const startIndex = (currentPage - 1) * locationsPerPage;
   const currentLocations = filteredLocations.slice(startIndex, startIndex + locationsPerPage);
 
-  const handleLocationClick = (locationId) => {
-    navigate(`/location/${locationId}`);
+  const handleLocationClick = (location) => {
+    setSelectedLocation(location);
   };
 
   const handleLoadMore = () => {
@@ -81,7 +107,7 @@ export const LocationsPage = () => {
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      const navbarHeight = 64; // Match your navbar height
+      const navbarHeight = 64;
       const elementPosition =
         element.getBoundingClientRect().top + window.scrollY - navbarHeight;
       window.scrollTo({
@@ -153,65 +179,66 @@ export const LocationsPage = () => {
           </div>
         </div>
 
-      {/* Locations Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${styles.locationsGrid}`}>
-          {currentLocations.map((location, index) => (
-            <LocationCard
-              key={location.id}
-              location={location}
-              onClick={() => handleLocationClick(location.id)}
-              animationDelay={index * 0.1}
-            />
-          ))}
-        </div>
-
-        {/* No Results */}
-        {currentLocations.length === 0 && (
-          <div className={`text-center py-16 ${styles.animateFadeInUp}`}>
-            <div className="text-6xl mb-4">🏔️</div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-2">No locations found</h3>
-            <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+        {/* Locations Grid */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${styles.locationsGrid}`}>
+            {currentLocations.map((location, index) => (
+              <LocationCard
+                key={location.id}
+                location={location}
+                rating={locationRatings[location.id] || 0}
+                onClick={() => handleLocationClick(location)}
+                animationDelay={index * 0.1}
+              />
+            ))}
           </div>
-        )}
 
-        {/* Pagination */}
-        {filteredLocations.length > locationsPerPage && (
-          <div className={`flex justify-center items-center space-x-4 mt-12 ${styles.animateSlideInUp}`}>
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="px-6 py-3 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              Previous
-            </button>
-            
-            <div className="flex items-center space-x-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-10 h-10 rounded-lg transition-all ${
-                    currentPage === page
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
+          {/* No Results */}
+          {currentLocations.length === 0 && (
+            <div className={`text-center py-16 ${styles.animateFadeInUp}`}>
+              <div className="text-6xl mb-4">🏔️</div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-2">No locations found</h3>
+              <p className="text-gray-600">Try adjusting your search or filter criteria</p>
             </div>
+          )}
 
-            <button
-              onClick={handleLoadMore}
-              disabled={currentPage === totalPages}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              Load More
-            </button>
-          </div>
-        )}
-      </div>
+          {/* Pagination */}
+          {filteredLocations.length > locationsPerPage && (
+            <div className={`flex justify-center items-center space-x-4 mt-12 ${styles.animateSlideInUp}`}>
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className="px-6 py-3 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Previous
+              </button>
+              
+              <div className="flex items-center space-x-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 rounded-lg transition-all ${
+                      currentPage === page
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={handleLoadMore}
+                disabled={currentPage === totalPages}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Load More
+              </button>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

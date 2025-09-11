@@ -2,7 +2,28 @@ import React from 'react';
 import { MapPin, Star, Calendar } from 'lucide-react';
 import styles from '../../styles/LocationsPage.module.css';
 
-const LocationCard = ({ location, onClick, animationDelay = 0 }) => {
+const LocationCard = ({ location, rating, onClick, animationDelay = 0 }) => {
+  // Function to determine category based on location name or description
+  const getCategory = () => {
+    const name = location.locationName?.toLowerCase() || '';
+    const description = location.shortDescription?.toLowerCase() || '';
+    
+    if (name.includes('mountain') || description.includes('mountain')) return 'mountain';
+    if (name.includes('beach') || description.includes('beach')) return 'beach';
+    if (name.includes('forest') || description.includes('forest')) return 'forest';
+    if (name.includes('desert') || description.includes('desert')) return 'desert';
+    if (name.includes('lake') || description.includes('lake')) return 'lake';
+    
+    return 'other';
+  };
+
+  const category = getCategory();
+  
+  // Get first image or placeholder
+  const imageUrl = location.locationImage && location.locationImage.length > 0 
+    ? `http://localhost:8000/storage/${location.locationImage[0]}`
+    : '/placeholder-image.jpg';
+
   return (
     <div
       className={`bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl ${styles.locationCard} ${styles.animateSlideInCard}`}
@@ -12,22 +33,27 @@ const LocationCard = ({ location, onClick, animationDelay = 0 }) => {
       {/* Image */}
       <div className="relative overflow-hidden h-48">
         <img
-          src={location.image}
+          src={imageUrl}
           alt={location.locationName || "Location"}
           className={`w-full h-full object-cover transition-transform duration-500 hover:scale-110 ${styles.cardImage}`}
+          onError={(e) => {
+            e.target.src = '/placeholder-image.jpg';
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
         
         {/* Category Badge */}
         <div className={`absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-semibold text-gray-700 ${styles.categoryBadge}`}>
-          {location.category}
+          {category}
         </div>
 
-        {/* Rating Badge */}
-        <div className={`absolute top-4 right-4 flex items-center space-x-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 ${styles.ratingBadge}`}>
-          <Star size={12} className="text-yellow-400 fill-current" />
-          <span className="text-xs font-semibold text-gray-700">{location.rating}</span>
-        </div>
+        {/* Rating Badge - Only show if rating exists */}
+        {rating > 0 && (
+          <div className="absolute top-4 right-4 px-2 py-1 bg-black/70 backdrop-blur-sm rounded-full flex items-center">
+            <Star size={14} className="text-yellow-400 fill-current mr-1" />
+            <span className="text-xs text-white font-semibold">{rating.toFixed(1)}</span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -44,18 +70,6 @@ const LocationCard = ({ location, onClick, animationDelay = 0 }) => {
         <p className={`text-gray-600 text-sm line-clamp-2 mb-4 leading-relaxed ${styles.description}`}>
           {location.shortDescription}
         </p>
-
-        {/* Footer */}
-        {/* <div className="flex items-center justify-between">
-          <div className={`flex items-center text-gray-500 text-xs ${styles.bestTime}`}>
-            <Calendar size={14} className="mr-1" />
-            <span>{location.bestTime}</span>
-          </div>
-          
-          <div className={`px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-semibold rounded-full ${styles.difficultyBadge}`}>
-            {location.difficulty}
-          </div>
-        </div> */}
       </div>
 
       {/* Hover Effect Overlay */}
