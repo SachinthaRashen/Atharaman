@@ -5,14 +5,24 @@ import styles from '../../styles/LocationsPage.module.css';
 const LocationCard = ({ location, rating, onClick, animationDelay = 0 }) => {
   // Function to determine category based on location name or description
   const getCategory = () => {
+    const type = location.locationType?.toLowerCase() || '';
     const name = location.locationName?.toLowerCase() || '';
-    const description = location.shortDescription?.toLowerCase() || '';
     
-    if (name.includes('mountain') || description.includes('mountain')) return 'mountain';
-    if (name.includes('beach') || description.includes('beach')) return 'beach';
-    if (name.includes('forest') || description.includes('forest')) return 'forest';
-    if (name.includes('desert') || description.includes('desert')) return 'desert';
-    if (name.includes('lake') || description.includes('lake')) return 'lake';
+    if (type.includes('mountain') || name.includes('mountain')) return 'Mountain';
+    if (type.includes('rock') || name.includes('rock')) return 'Rock';
+    if (type.includes('plain') || name.includes('plain')) return 'Plain';
+    if (type.includes('valley') || name.includes('valley')) return 'Valley';
+    if (type.includes('beach') || name.includes('beach')) return 'Beach';
+    if (type.includes('cliff') || name.includes('cliff')) return 'Cliff';
+    if (type.includes('desert') || name.includes('desert')) return 'Desert';
+    if (type.includes('forest') || name.includes('forest')) return 'Forest';
+    if (type.includes('temple') || name.includes('temple')) return 'Temple';
+    if (type.includes('building') || name.includes('building')) return 'Building';
+    if (type.includes('lake') || name.includes('lake')) return 'Lake';
+    if (type.includes('river') || name.includes('river')) return 'River';
+    if (type.includes('island') || name.includes('island')) return 'Island';
+    if (type.includes('road') || name.includes('road')) return 'Road';
+    if (type.includes('village') || name.includes('village')) return 'Village';
     
     return 'other';
   };

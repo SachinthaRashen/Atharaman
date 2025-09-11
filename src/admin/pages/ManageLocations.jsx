@@ -42,7 +42,7 @@ const ManageLocations = () => {
 
   const columns = [
     { key: 'locationName', label: 'Location Name', sortable: true },
-    { key: 'province', label: 'Province', sortable: true },
+    { key: 'locationType', label: 'Type', sortable: true },
     { 
       key: 'shortDescription', 
       label: 'Description', 

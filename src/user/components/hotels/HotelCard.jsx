@@ -1,7 +1,11 @@
 import React from 'react';
 import { MapPin, Star, DollarSign, Phone } from 'lucide-react';
+import { getHotelImageUrls, getMainHotelImage } from '../../../helpers/ImageHelpers';
 
 export const HotelCard = ({ hotel, onClick }) => {
+  const imageUrls = getHotelImageUrls(hotel);
+  const mainImage = getMainHotelImage(hotel);
+
   return (
     <div 
       onClick={() => onClick(hotel)}
@@ -10,10 +14,12 @@ export const HotelCard = ({ hotel, onClick }) => {
       {/* Hotel Image */}
       <div className="relative h-48 overflow-hidden">
         <img 
-          src={hotel.images?.[0]} 
+          src={mainImage}
           alt={hotel.hotelName}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-          loading="lazy"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            e.target.src = "/default-hotel.jpg";
+          }}
         />
 
         {/* Rating Badge */}
