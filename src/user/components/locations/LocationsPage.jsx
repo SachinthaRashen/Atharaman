@@ -1,20 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, MapPin, ArrowLeft, ChevronDown, Grid, List } from 'lucide-react';
 import LocationCard from './LocationCard';
+import LocationDetail from './LocationDetail';
 import { locations } from '../../data/locationsData';
 import styles from '../../styles/LocationsPage.module.css';
 import Navbar from '../Navbar';
 import SearchAndFilter from '../SearchAndFilter';
+import { u } from 'framer-motion/client';
+import axios from 'axios';
 
 export const LocationsPage = () => {
   const navigate = useNavigate();
+  const [locations, setLocations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const locationsPerPage = 9;
+
+  //Fetch locations from data file or API
+  useEffect(() => {
+    axios
+      .get('http://localhost:8000/api/locations')
+      .then((response) =>  setLocations(response.data))
+      .catch((error) => console.error('Error fetching locations:', error));
+  }, []);
+
+  // Category filters
 
   const filters = [
     { value: 'all', label: 'All Locations' },
@@ -25,12 +40,19 @@ export const LocationsPage = () => {
     { value: 'lake', label: 'Lakes' }
   ];
 
-  const filteredLocations = locations.filter(location => {
-    const matchesSearch = location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         location.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = selectedFilter === 'all' || location.category === selectedFilter;
-    return matchesSearch && matchesFilter;
-  });
+  // Filtering
+  const filteredLocations = useMemo(() => {
+    return locations.filter((location) => {
+      const matchesSearch = location.locationName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesFilter =
+        selectedFilter === 'all' || location.category === selectedFilter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [searchTerm, selectedFilter, locations]);
+
+  // Pagination
 
   const totalPages = Math.ceil(filteredLocations.length / locationsPerPage);
   const startIndex = (currentPage - 1) * locationsPerPage;
@@ -68,6 +90,12 @@ export const LocationsPage = () => {
       });
     }
   };
+
+  if (selectedLocation) {
+    return (
+      <LocationDetail location={selectedLocation} onBack={() => setSelectedLocation(null)} />
+    );
+  }
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16 ${styles.locationsPage}`}>

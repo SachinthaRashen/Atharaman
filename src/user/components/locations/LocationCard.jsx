@@ -13,7 +13,7 @@ const LocationCard = ({ location, onClick, animationDelay = 0 }) => {
       <div className="relative overflow-hidden h-48">
         <img
           src={location.image}
-          alt={location.name}
+          alt={location.locationName || "Location"}
           className={`w-full h-full object-cover transition-transform duration-500 hover:scale-110 ${styles.cardImage}`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
@@ -33,12 +33,12 @@ const LocationCard = ({ location, onClick, animationDelay = 0 }) => {
       {/* Content */}
       <div className="p-6">
         <h3 className={`text-xl font-bold text-gray-900 mb-2 line-clamp-1 ${styles.cardTitle}`}>
-          {location.name}
+          {location.locationName}
         </h3>
         
         <div className={`flex items-center text-gray-600 mb-3 ${styles.locationInfo}`}>
           <MapPin size={16} className="mr-2 flex-shrink-0" />
-          <span className="text-sm line-clamp-1">{location.location}</span>
+          <span className="text-sm line-clamp-1">{location.province}</span>
         </div>
 
         <p className={`text-gray-600 text-sm line-clamp-2 mb-4 leading-relaxed ${styles.description}`}>
@@ -46,7 +46,7 @@ const LocationCard = ({ location, onClick, animationDelay = 0 }) => {
         </p>
 
         {/* Footer */}
-        <div className="flex items-center justify-between">
+        {/* <div className="flex items-center justify-between">
           <div className={`flex items-center text-gray-500 text-xs ${styles.bestTime}`}>
             <Calendar size={14} className="mr-1" />
             <span>{location.bestTime}</span>
@@ -55,7 +55,7 @@ const LocationCard = ({ location, onClick, animationDelay = 0 }) => {
           <div className={`px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-semibold rounded-full ${styles.difficultyBadge}`}>
             {location.difficulty}
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Hover Effect Overlay */}
