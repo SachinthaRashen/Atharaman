@@ -387,7 +387,7 @@ const LocationDetail = ({ location, onBack }) => {
                       {shops.map(shop => (
                         <ShopCard
                           key={shop.id}
-                          guide={shop}
+                          shop={shop}
                           onClick={handleShopClick}
                         />
                       ))}
@@ -409,7 +409,7 @@ const LocationDetail = ({ location, onBack }) => {
                       {hotels.map(hotel => (
                         <HotelCard
                           key={hotel.id}
-                          guide={hotel}
+                          hotel={hotel}
                           onClick={handleHotelClick}
                         />
                       ))}
@@ -431,7 +431,7 @@ const LocationDetail = ({ location, onBack }) => {
                       {vehicles.map(vehicle => (
                         <VehicleCard 
                           key={vehicle.id} 
-                          guide={vehicle} 
+                          vehicle={vehicle} 
                           onClick={handleVehicleClick}
                         />
                       ))}
