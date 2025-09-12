@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, DollarSign } from 'lucide-react';
+import VehicleDetail from './vehicles/VehicleDetail';
+import ShopDetail from './shops/ShopDetail';
+import HotelDetail from './hotels/HotelDetail';
+import GuideDetail from './guides/GuideDetail';
 
-const ProductSection = ({ id, title, data, type }) => {
+const ProductSection = ({ id, title, data, type, onSeeMore }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [detailType, setDetailType] = useState(null);
 
+  // Auto-play functionality
   useEffect(() => {
     if (!isAutoPlaying || data.length === 0) return;
 
@@ -29,7 +36,45 @@ const ProductSection = ({ id, title, data, type }) => {
     );
   };
 
-  const currentItems = data.slice(currentIndex, currentIndex + 3);
+  const handleCardClick = (item) => {
+    setSelectedItem(item);
+    setDetailType(type);
+  };
+
+  const handleBack = () => {
+    setSelectedItem(null);
+    setDetailType(null);
+  };
+
+  const handleSeeMore = () => {
+    if (onSeeMore) {
+      // If a callback is provided, use it
+      onSeeMore(type);
+    } else {
+      // Default behavior: scroll to the dedicated section
+      const sectionId = `${type}-section`;
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  // Render appropriate detail component based on type
+  if (selectedItem) {
+    switch (detailType) {
+      case 'vehicle':
+        return <VehicleDetail vehicle={selectedItem} onBack={handleBack} />;
+      case 'shop':
+        return <ShopDetail shop={selectedItem} onBack={handleBack} />;
+      case 'hotel':
+        return <HotelDetail hotel={selectedItem} onBack={handleBack} />;
+      case 'guide':
+        return <GuideDetail guide={selectedItem} onBack={handleBack} />;
+      default:
+        return null;
+    }
+  }
 
   const renderCard = (item, index) => {
     const cardClass = "bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer animate-fade-in";
@@ -56,7 +101,7 @@ const ProductSection = ({ id, title, data, type }) => {
 
       case 'guide':
         return (
-          <div key={item.id} className={cardClass} style={{ animationDelay: `${index * 100}ms` }}>
+          <div key={item.id} className={cardClass} onClick={() => handleCardClick(item)} style={{ animationDelay: `${index * 100}ms` }}>
             <div className="relative overflow-hidden">
               <img 
                 src={item.photo} 
@@ -77,7 +122,7 @@ const ProductSection = ({ id, title, data, type }) => {
 
       case 'shop':
         return (
-          <div key={item.id} className={cardClass} style={{ animationDelay: `${index * 100}ms` }}>
+          <div key={item.id} className={cardClass} onClick={() => handleCardClick(item)} style={{ animationDelay: `${index * 100}ms` }}>
             <div className="relative overflow-hidden">
               <img 
                 src={item.logo} 
@@ -98,7 +143,7 @@ const ProductSection = ({ id, title, data, type }) => {
 
       case 'hotel':
         return (
-          <div key={item.id} className={cardClass} style={{ animationDelay: `${index * 100}ms` }}>
+          <div key={item.id} className={cardClass} onClick={() => handleCardClick(item)} style={{ animationDelay: `${index * 100}ms` }}>
             <div className="relative overflow-hidden group">
               <img 
                 src={item.image} 
@@ -120,7 +165,7 @@ const ProductSection = ({ id, title, data, type }) => {
 
       case 'vehicle':
         return (
-          <div key={item.id} className={cardClass} style={{ animationDelay: `${index * 100}ms` }}>
+          <div key={item.id} className={cardClass} onClick={() => handleCardClick(item)} style={{ animationDelay: `${index * 100}ms` }}>
             <img 
               src={item.photo} 
               alt={item.vehicleName} 
@@ -177,13 +222,16 @@ const ProductSection = ({ id, title, data, type }) => {
 
           {/* Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {currentItems.map((item, index) => renderCard(item, index))}
+            {data.slice(currentIndex, currentIndex + 3).map((item, index) => renderCard(item, index))}
           </div>
         </div>
 
         {/* See More Button */}
         <div className="text-center mt-12">
-          <button className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-3 rounded-full font-semibold hover:from-green-600 hover:to-teal-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-green-500/30">
+          <button 
+            onClick={handleSeeMore}
+            className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-3 rounded-full font-semibold hover:from-green-600 hover:to-teal-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-green-500/30"
+          >
             See More {title}
           </button>
         </div>
