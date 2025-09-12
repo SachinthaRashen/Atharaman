@@ -6,10 +6,7 @@ import styles from '../../styles/LocationDetails.module.css';
 import Navbar from '../Navbar';
 import {
   getReviewsByEntity,
-  getGuidesByLocation,
-  getShopsByLocation,
-  getHotelsByLocation,
-  getVehiclesByLocation
+  getRelatedData
 } from '../../../services/api';
 import ReviewSection from '../ReviewSection';
 import { GuideCard } from '../guides/GuideCard';
@@ -60,84 +57,29 @@ const LocationDetail = ({ location, onBack }) => {
     fetchLocationReviews();
   }, [location]);
 
+  // Fetch all related data in a single API call
   useEffect(() => {
-    const fetchGuides = async () => {
-      if (location?.locationName) {
+    const fetchRelatedData = async () => {
+      if (location?.id) {
         try {
           setLoading(true);
-          const response = await getGuidesByLocation(location.locationName);
-          setGuides(response.data);
+          const response = await getRelatedData(location.id);
+          
+          if (response.data.success) {
+            setGuides(response.data.data.guides || []);
+            setShops(response.data.data.shops || []);
+            setHotels(response.data.data.hotels || []);
+            setVehicles(response.data.data.vehicles || []);
+          }
         } catch (error) {
-          console.error('Error fetching guides:', error);
+          console.error('Error fetching related data:', error);
         } finally {
           setLoading(false);
         }
       }
     };
 
-    if (location) {
-      fetchGuides();
-    }
-  }, [location]);
-
-  useEffect(() => {
-    const fetchShops = async () => {
-      if (location?.locationName) {
-        try {
-          setLoading(true);
-          const response = await getShopsByLocation(location.locationName);
-          setShops(response.data);
-        } catch (error) {
-          console.error('Error fetching shops:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    if (location) {
-      fetchShops();
-    }
-  }, [location]);
-
-  useEffect(() => {
-    const fetchHotels = async () => {
-      if (location?.locationName) {
-        try {
-          setLoading(true);
-          const response = await getHotelsByLocation(location.locationName);
-          setHotels(response.data);
-        } catch (error) {
-          console.error('Error fetching hotels:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    if (location) {
-      fetchHotels();
-    }
-  }, [location]);
-
-  useEffect(() => {
-    const fetchVehicles = async () => {
-      if (location?.locationName) {
-        try {
-          setLoading(true);
-          const response = await getVehiclesByLocation(location.locationName);
-          setVehicles(response.data);
-        } catch (error) {
-          console.error('Error fetching vehicles:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    if (location) {
-      fetchVehicles();
-    }
+    fetchRelatedData();
   }, [location]);
 
   const scrollToSection = (sectionId) => {
