@@ -1,45 +1,62 @@
 import React from 'react';
-import { MapPin, Star, Clock, Phone } from 'lucide-react';
+import { Star, Phone } from 'lucide-react';
 import { getGuideImageUrls, getMainGuideImage } from '../../../helpers/ImageHelpers';
+import { useNavigate } from 'react-router-dom';
 
-export const GuideCard = ({ guide, onClick }) => {
+export const GuideCard = ({ guide, rating, animationDelay = 0 }) => {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    navigate(`/guides/${guide.id}`);
+  };
+
   const imageUrls = getGuideImageUrls(guide);
   const mainImage = getMainGuideImage(guide);
 
   return (
     <div 
-      onClick={() => onClick(guide)}
-      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
+      className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+      style={{ animationDelay: `${animationDelay}s` }}
+      onClick={handleClick}
     >
       <div className="relative h-48 overflow-hidden">
         <img 
           src={mainImage}
           alt={guide.guideName}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
           onError={(e) => {
             e.target.src = "/default-guide.jpg";
           }}
         />
-        <div className="absolute top-2 right-2 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
-          <Star className="size-4 text-yellow-400 fill-current" />
-          <span className="text-sm font-medium">{guide.rating || '0'}</span>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+
+        {/* Rating Badge - Only show if rating exists */}
+        {rating > 0 && (
+          <div className="absolute top-4 right-4 px-2 py-1 bg-black/70 backdrop-blur-sm rounded-full flex items-center">
+            <Star size={14} className="text-yellow-400 fill-current mr-1" />
+            <span className="text-xs text-white font-semibold">{rating.toFixed(1)}</span>
+          </div>
+        )}
       </div>
       
-      <div className="p-4">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">{guide.guideName}</h3>
-        
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-1">
-            <MapPin className="size-4" />
-            <span>{guide.locations || 'No location'}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Phone className="size-4" />
-            <span>{guide.personalNumber || 'No number'}</span>
-          </div>
+      {/* Content */}
+      <div className="p-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
+          {guide.guideName}
+        </h3>
+
+        <div className={"flex items-center text-gray-600 mb-3"}>
+          <Phone size={16} className="mr-2 flex-shrink-0" />
+          <span className="text-sm line-clamp-1">{guide.personalNumber}</span>
         </div>
+        
+        <p className="text-gray-600 text-sm line-clamp-2 mb-4 leading-relaxed">
+          {guide.description}
+        </p>
       </div>
+
+      {/* Hover Effect Overlay */}
+      <div className={"absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 hover:opacity-100 transition-opacity duration-300"}></div>
     </div>
   );
 };

@@ -17,13 +17,11 @@ import ManageRequests from './admin/pages/ManageRequests';
 import ManageReviews from './admin/pages/ManageReviews';
 import ManageUsers from './admin/pages/ManageUsers';
 // User Components
+import {LocationsPage} from './user/components/locations/LocationsPage';
 import GuidesSection from './user/components/guides/GuidesSection';
 import HotelsSection from './user/components/hotels/HotelsSection';
 import ShopsSection from './user/components/shops/ShopsSection';
 import VehiclesSection from './user/components/vehicles/VehiclesSection';
-import {LocationsPage} from './user/components/locations/LocationsPage';
-import LocationDetail from "./user/components/locations/LocationDetail";
-
 // User Pages
 import Home from './user/pages/Home';
 import UserProfilePage from './user/pages/UserProfilePage';
@@ -33,6 +31,8 @@ import TermsAndConditions from './user/pages/TermsAndConditions';
 import ForgotPassword from './user/pages/ForgotPassword';
 import ResetPassword from './user/pages/ResetPassword';
 import Unauthorized from './user/pages/Unauthorized';
+import LocationDetailPage from './user/pages/LocationDetailPage';
+import GuideDetailPage from './user/pages/GuideDetailPage';
 // Import ProtectedRoute
 import ProtectedRoute from './services/ProtectedRoute';
 
@@ -114,7 +114,10 @@ function AppContent() {
                 <UserProfilePage />
               </ProtectedRoute>
             } />
+            <Route path="/locations" element={<LocationsPage />} />
+            <Route path="/locations/:id" element={<LocationDetailPage />} />
             <Route path="/guides" element={<GuidesSection />} />
+            <Route path="/guides/:id" element={<GuideDetailPage />} />
             <Route path="/hotels" element={<HotelsSection />} />
             <Route path="/shops" element={<ShopsSection />} />
             <Route path="/vehicles" element={<VehiclesSection />} />
@@ -123,8 +126,6 @@ function AppContent() {
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/locations" element={<LocationsPage />} />
-            <Route path="/location/:id" element={<LocationDetail />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
           </Routes>
         )}

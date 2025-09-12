@@ -71,6 +71,7 @@ export const deleteUser = (id) => api.delete(`/admin/users/${id}`);
 export const getLocations = () => api.get('/locations');
 export const getLocationById = (id) => api.get(`/locations/${id}`);
 export const getLocationsByProvince = (province) => api.get(`/locations/province/${province}`);
+export const getRelatedData = (locationId) => api.get(`/locations/${locationId}/related-data`);
 // Admin location APIs
 export const createLocation = (formData) => {return api.post('/locations', formData, {headers: {'Content-Type': 'multipart/form-data'}});};
 export const updateLocation = (id, formData) => {return api.put(`/locations/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});};

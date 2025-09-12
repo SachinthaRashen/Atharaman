@@ -1,34 +1,33 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import SearchAndFilter from '../SearchAndFilter';
 import GuideCard from './GuideCard';
-import GuideDetail from './GuideDetail';
 import Navbar from '../Navbar';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export const GuidesSection = () => {
   const [guides, setGuides] = useState([]);
   const [allLocations, setAllLocations] = useState([]);
   const [guideRatings, setGuideRatings] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGuide, setSelectedGuide] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingLocations, setIsLoadingLocations] = useState(true);
   const guidesPerPage = 9;
+  const navigate = useNavigate();
 
   // Fetch all locations from API
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        setIsLoadingLocations(true);
+        setIsLoading(true);
         const response = await axios.get('http://localhost:8000/api/locations');
         const locationNames = response.data.map(location => location.locationName);
         setAllLocations(['All Locations', ...locationNames.sort()]);
       } catch (error) {
         console.error('Error fetching locations:', error);
       } finally {
-        setIsLoadingLocations(false);
+        setIsLoading(false);
       }
     };
 
@@ -70,15 +69,13 @@ export const GuidesSection = () => {
     fetchGuides();
   }, []);
 
-  // Filtering and sorting - FIXED VERSION
+  // Filtering and sorting
   const filteredGuides = useMemo(() => {
     // First filter the guides
     const filtered = guides.filter((guide) => {
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = 
-        guide.guideName?.toLowerCase().includes(searchLower) ||
-        (guide.specialization && guide.specialization.toLowerCase().includes(searchLower)) ||
-        (guide.description && guide.description.toLowerCase().includes(searchLower));
+        guide.guideName?.toLowerCase().includes(searchLower);
       
       // Check if the guide has the selected location in their locations array
       const hasLocation = guide.locations && Array.isArray(guide.locations) && 
@@ -129,10 +126,8 @@ export const GuidesSection = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedLocation]);
 
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+  const handleGuideClick = (guide) => {
+    navigate(`/guides/${guide.id}`);
   };
 
   const handleLoadMore = () => {
@@ -141,11 +136,11 @@ export const GuidesSection = () => {
     }
   };
 
-  if (selectedGuide) {
-    return (
-      <GuideDetail guide={selectedGuide} onBack={() => setSelectedGuide(null)} />
-    );
-  }
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -181,21 +176,21 @@ export const GuidesSection = () => {
           onLocationChange={setSelectedLocation}
           showLocationFilter={true}
           locations={allLocations}
-          placeholder="Search guides by name..."
+          placeholder="Search guides..."
           isLocationPage={false}
         />
 
         {/* Loading State */}
-        {(isLoading || isLoadingLocations) && (
+        {(isLoading) && (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🧭👨‍🦯👩‍🦯🗺️</div>
             <h3 className="text-2xl font-semibold text-gray-900 mb-2">Loading guides...</h3>
-            <p className="text-gray-600">Please wait while we fetch the best guides for you</p>
+            <p className="text-gray-600">Please wait while we organize the best guides for you</p>
           </div>
         )}
 
         {/* No Guides for Selected Location Message */}
-        {!isLoading && !isLoadingLocations && selectedLocation !== 'All Locations' && !hasGuidesForSelectedLocation && (
+        {!isLoading && selectedLocation !== 'All Locations' && !hasGuidesForSelectedLocation && (
           <div className="text-center py-12 bg-yellow-50 rounded-lg border border-yellow-200 mb-6">
             <div className="text-6xl mb-4">🧭</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No guides available for {selectedLocation}</h3>
@@ -207,15 +202,16 @@ export const GuidesSection = () => {
         )}
 
         {/* Guides Grid */}
-        {!isLoading && !isLoadingLocations && filteredGuides.length > 0 && (
-          <>
+        {!isLoading && filteredGuides.length > 0 && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentGuides.map((guide) => (
+              {currentGuides.map((guide, index) => (
                 <GuideCard 
-                  key={guide.id} 
-                  guide={guide} 
+                  key={guide.id}
+                  guide={guide}
                   rating={guideRatings[guide.id] || 0}
-                  onClick={() => setSelectedGuide(guide)} 
+                  onClick={() => handleGuideClick(guide)}
+                  animationDelay={index * 0.1}
                 />
               ))}
             </div>
@@ -259,11 +255,11 @@ export const GuidesSection = () => {
                 </button>
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* No Results from Search */}
-        {!isLoading && !isLoadingLocations && filteredGuides.length === 0 && hasGuidesForSelectedLocation && (
+        {!isLoading && filteredGuides.length === 0 && hasGuidesForSelectedLocation && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No guides found</h3>

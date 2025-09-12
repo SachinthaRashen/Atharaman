@@ -2,19 +2,19 @@ import React, { useState, useEffect, useMemo } from 'react';
 import styles from '../../styles/LocationsPage.module.css';
 import SearchAndFilter from '../SearchAndFilter';
 import LocationCard from './LocationCard';
-import LocationDetail from './LocationDetail';
 import Navbar from '../Navbar';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export const LocationsPage = () => {
   const [locations, setLocations] = useState([]);
   const [locationRatings, setLocationRatings] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const locationsPerPage = 9;
+  const navigate = useNavigate();
 
   // Unified category system - define categories in one place
   const categoryFilters = [
@@ -140,8 +140,12 @@ export const LocationsPage = () => {
   const startIndex = (currentPage - 1) * locationsPerPage;
   const currentLocations = filteredLocations.slice(startIndex, startIndex + locationsPerPage);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedFilter]);
+
   const handleLocationClick = (location) => {
-    setSelectedLocation(location);
+    navigate(`/locations/${location.id}`);
   };
 
   const handleLoadMore = () => {
@@ -156,10 +160,6 @@ export const LocationsPage = () => {
     }
   };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedFilter]);
-
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -172,12 +172,6 @@ export const LocationsPage = () => {
       });
     }
   };
-
-  if (selectedLocation) {
-    return (
-      <LocationDetail location={selectedLocation} onBack={() => setSelectedLocation(null)} />
-    );
-  }
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16 ${styles.locationsPage}`}>
@@ -206,9 +200,9 @@ export const LocationsPage = () => {
         {/* Loading State */}
         {isLoading && (
           <div className="text-center py-16">
-            <div className="text-6xl mb-4">⛰️🧭🏪🏨🚘</div>
+            <div className="text-6xl mb-4">🏕️🌄🏝️🗻</div>
             <h3 className="text-2xl font-semibold text-gray-900 mb-2">Loading locations...</h3>
-            <p className="text-gray-600">Please wait while we fetch the best destinations for you</p>
+            <p className="text-gray-600">Please wait while we organize the best destinations for you</p>
           </div>
         )}
 
