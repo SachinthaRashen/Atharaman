@@ -20,9 +20,10 @@ import { VehicleCard } from '../vehicles/VehicleCard';
 import VehicleDetail from '../vehicles/VehicleDetail';
 
 const LocationDetail = ({ location, onBack }) => {
-  const [reviews, setReviews] = useState([]);
-  const [averageRating, setAverageRating] = useState(0);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const reviews = location.reviews || location.reviews?.data || [];
+  const averageRating = location.reviews_avg_rating ? parseFloat(location.reviews_avg_rating) : 0;
+  const reviewCount = location.reviews_count || reviews.length;
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [guides, setGuides] = useState([]);
   const [shops, setShops] = useState([]);
@@ -34,29 +35,6 @@ const LocationDetail = ({ location, onBack }) => {
   const [selectedHotel, setSelectedHotel] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchLocationReviews = async () => {
-      if (location?.id) {
-        try {
-          setReviewsLoading(true);
-          const response = await getReviewsByEntity('location', location.id);
-          setReviews(response.data);
-
-          if (response.data.length > 0) {
-            const totalRating = response.data.reduce((sum, review) => sum + review.rating, 0);
-            setAverageRating(totalRating / response.data.length);
-          }
-        } catch (error) {
-          console.error('Error fetching location reviews:', error);
-        } finally {
-          setReviewsLoading(false);
-        }
-      }
-    };
-
-    fetchLocationReviews();
-  }, [location]);
 
   // Fetch all related data in a single API call
   useEffect(() => {
@@ -307,6 +285,7 @@ const LocationDetail = ({ location, onBack }) => {
                           key={guide.id} 
                           guide={guide} 
                           onClick={handleGuideClick}
+                          isClickable={false}
                         />
                       ))}
                     </div>
@@ -422,7 +401,7 @@ const LocationDetail = ({ location, onBack }) => {
                               }`}
                             />
                           ))}
-                          <span className="text-sm text-gray-600 ml-1">({averageRating.toFixed(1)})</span>
+                          <span className="text-sm text-gray-600 ml-1">({averageRating ? averageRating.toFixed(1) : '0.0'})</span>
                         </div>
                       </div>
                     )}
@@ -436,25 +415,25 @@ const LocationDetail = ({ location, onBack }) => {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h2>
               
               {/* Reviews Summary */}
-              {reviews.length > 0 ? (
+              {reviewCount > 0 ? (
                 <div className="bg-gray-50 rounded-lg p-6 mb-6">
                   <div className="flex flex-col md:flex-row items-center gap-6">
                     <div className="text-center">
                       <div className="text-4xl font-bold text-emerald-600">
-                        {averageRating.toFixed(1)}
+                        {averageRating ? averageRating.toFixed(1) : '0.0'}
                       </div>
                       <div className="flex justify-center mt-1">
                         {renderStars(Math.round(averageRating))}
                       </div>
                       <div className="text-sm text-gray-500 mt-1">
-                        {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+                        {reviewCount} review{reviewCount !== 1 ? 's' : ''}
                       </div>
                     </div>
                     
                     <div className="flex-1 space-y-2">
                       {[5, 4, 3, 2, 1].map((star) => {
                         const count = reviews.filter(review => review.rating === star).length;
-                        const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                        const percentage = reviewCount > 0 ? (count / reviewCount) * 100 : 0;
                         
                         return (
                           <div key={star} className="flex items-center gap-2">
@@ -476,11 +455,10 @@ const LocationDetail = ({ location, onBack }) => {
                   </div>
                 </div>
               ) : (
-                !reviewsLoading && (
-                  <div className="bg-gray-50 rounded-lg p-6 mb-6 text-center">
-                    <p className="text-gray-500">No reviews yet. Be the first to review this location!</p>
-                  </div>
-                )
+                // REMOVED reviewsLoading reference since we don't have that state anymore
+                <div className="bg-gray-50 rounded-lg p-6 mb-6 text-center">
+                  <p className="text-gray-500">No reviews yet. Be the first to review this location!</p>
+                </div>
               )}
 
               {/* ReviewSection Component */}
