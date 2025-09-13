@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, ChevronLeft, ChevronRight, Star, Mountain} from 'lucide-react';
 import WeatherWidget from './WeatherWidget';
+import LocationMap from './LocationMap';
 import styles from '../../styles/LocationDetails.module.css';
 import Navbar from '../Navbar';
 import {
@@ -282,17 +283,14 @@ const LocationDetail = ({ location, onBack }) => {
                 </div>
 
                 {/* Map Section */}
-                <div className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger1}`}>
+                <div
+                  className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger1}`}>
                   <h2 className="text-2xl font-bold text-gray-900 mb-6">Location Map</h2>
-                  <div className="bg-gradient-to-br from-blue-100 to-green-100 rounded-xl h-64 flex items-center justify-center">
-                    <div className="text-center">
-                      <MapPin size={48} className="text-blue-500 mx-auto mb-4" />
-                      <p className="text-gray-600">Interactive map will be integrated here</p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Coordinates: {location.latitude}, {location.longitude}
-                      </p>
-                    </div>
-                  </div>
+                  <LocationMap
+                    latitude={location.latitude}
+                    longitude={location.longitude}
+                    name={location.locationName}
+                  />
                 </div>
 
                 {/* Guides Section */}
