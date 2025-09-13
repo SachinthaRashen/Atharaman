@@ -1,8 +1,15 @@
 import React from 'react';
-import { MapPin, Star, Calendar } from 'lucide-react';
+import { MapPin, Star } from 'lucide-react';
 import styles from '../../styles/LocationsPage.module.css';
+import { useNavigate } from 'react-router-dom';
 
-const LocationCard = ({ location, rating, onClick, animationDelay = 0 }) => {
+export const LocationCard = ({ location, rating, animationDelay = 0 }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/locations/${location.id}`);
+  };
+
   // Function to determine category based on location name or description
   const getCategory = () => {
     const type = location.locationType?.toLowerCase() || '';
@@ -38,7 +45,7 @@ const LocationCard = ({ location, rating, onClick, animationDelay = 0 }) => {
     <div
       className={`bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl ${styles.locationCard} ${styles.animateSlideInCard}`}
       style={{ animationDelay: `${animationDelay}s` }}
-      onClick={onClick}
+      onClick={handleClick}
     >
       {/* Image */}
       <div className="relative overflow-hidden h-48">
@@ -74,7 +81,7 @@ const LocationCard = ({ location, rating, onClick, animationDelay = 0 }) => {
         
         <div className={`flex items-center text-gray-600 mb-3 ${styles.locationInfo}`}>
           <MapPin size={16} className="mr-2 flex-shrink-0" />
-          <span className="text-sm line-clamp-1">{location.province}</span>
+          <span className="text-sm line-clamp-1">{location.province} Province</span>
         </div>
 
         <p className={`text-gray-600 text-sm line-clamp-2 mb-4 leading-relaxed ${styles.description}`}>

@@ -1,46 +1,57 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Filter, MapPin, ArrowLeft, ChevronDown, Grid, List } from 'lucide-react';
-import LocationCard from './LocationCard';
-import LocationDetail from './LocationDetail';
 import styles from '../../styles/LocationsPage.module.css';
-import Navbar from '../Navbar';
 import SearchAndFilter from '../SearchAndFilter';
+import LocationCard from './LocationCard';
+import Navbar from '../Navbar';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export const LocationsPage = () => {
-  const navigate = useNavigate();
   const [locations, setLocations] = useState([]);
   const [locationRatings, setLocationRatings] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [viewMode, setViewMode] = useState('grid');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const locationsPerPage = 9;
+  const navigate = useNavigate();
 
-  // Function to determine category (same as in LocationCard)
+  // Unified category system - define categories in one place
+  const categoryFilters = [
+    { value: 'all', label: 'All Locations' },
+    { value: 'mountain', label: 'Mountains', keywords: ['mountain'] },
+    { value: 'rock', label: 'Rocks', keywords: ['rock'] },
+    { value: 'plain', label: 'Plains', keywords: ['plain'] },
+    { value: 'valley', label: 'Valleys', keywords: ['valley'] },
+    { value: 'beach', label: 'Beaches', keywords: ['beach'] },
+    { value: 'cliff', label: 'Cliffs', keywords: ['cliff'] },
+    { value: 'desert', label: 'Deserts', keywords: ['desert'] },
+    { value: 'forest', label: 'Forests', keywords: ['forest'] },
+    { value: 'temple', label: 'Temples', keywords: ['temple'] },
+    { value: 'building', label: 'Historic Buildings', keywords: ['building'] },
+    { value: 'lake', label: 'Lakes', keywords: ['lake'] },
+    { value: 'river', label: 'Rivers', keywords: ['river'] },
+    { value: 'island', label: 'Islands', keywords: ['island'] },
+    { value: 'road', label: 'Roads', keywords: ['road'] },
+    { value: 'village', label: 'Villages', keywords: ['village'] },
+    { value: 'other', label: 'Other', keywords: [] }
+  ];
+
+  // Function to determine category using the unified system
   const getCategory = (location) => {
     const type = location.locationType?.toLowerCase() || '';
     const name = location.locationName?.toLowerCase() || '';
     
-    if (type.includes('mountain') || name.includes('mountain')) return 'mountain';
-    if (type.includes('rock') || name.includes('rock')) return 'rock';
-    if (type.includes('plain') || name.includes('plain')) return 'plain';
-    if (type.includes('valley') || name.includes('valley')) return 'valley';
-    if (type.includes('beach') || name.includes('beach')) return 'beach';
-    if (type.includes('cliff') || name.includes('cliff')) return 'cliff';
-    if (type.includes('desert') || name.includes('desert')) return 'desert';
-    if (type.includes('forest') || name.includes('forest')) return 'forest';
-    if (type.includes('temple') || name.includes('temple')) return 'temple';
-    if (type.includes('building') || name.includes('building')) return 'building';
-    if (type.includes('lake') || name.includes('lake')) return 'lake';
-    if (type.includes('river') || name.includes('river')) return 'river';
-    if (type.includes('island') || name.includes('island')) return 'island';
-    if (type.includes('road') || name.includes('road')) return 'road';
-    if (type.includes('village') || name.includes('village')) return 'village';
+    // Find the first category that matches keywords
+    for (const category of categoryFilters) {
+      if (category.value === 'all' || category.value === 'other') continue;
+      
+      if (category.keywords.some(keyword => 
+        type.includes(keyword) || name.includes(keyword)
+      )) {
+        return category.value;
+      }
+    }
     
     return 'other';
   };
@@ -52,7 +63,7 @@ export const LocationsPage = () => {
         setIsLoading(true);
         const response = await axios.get('http://localhost:8000/api/locations');
         
-        // Add category to each location
+        // Add category to each location using our unified system
         const locationsWithCategory = response.data.map(location => ({
           ...location,
           category: getCategory(location)
@@ -87,29 +98,10 @@ export const LocationsPage = () => {
     fetchLocations();
   }, []);
 
-  // Category filters
-  const filters = [
-    { value: 'all', label: 'All Locations' },
-    { value: 'mountain', label: 'Mountains' },
-    { value: 'rock', label: 'Rocks' },
-    { value: 'plain', label: 'Plains' },
-    { value: 'valley', label: 'Valleys' },
-    { value: 'beach', label: 'Beaches' },
-    { value: 'cliff', label: 'Cliffs' },
-    { value: 'desert', label: 'Deserts' },
-    { value: 'forest', label: 'Forests' },
-    { value: 'temple', label: 'Temple' },
-    { value: 'building', label: 'Historic Building' },
-    { value: 'lake', label: 'Lakes' },
-    { value: 'river', label: 'Rivers' },
-    { value: 'island', label: 'Islands' },
-    { value: 'road', label: 'Roads' },
-    { value: 'village', label: 'Villages' }
-  ];
-
-  // Filtering
+  // Filtering and sorting
   const filteredLocations = useMemo(() => {
-    return locations.filter((location) => {
+    // First filter the locations
+    const filtered = locations.filter((location) => {
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = 
         location.locationName?.toLowerCase().includes(searchLower) ||
@@ -122,15 +114,38 @@ export const LocationsPage = () => {
       
       return matchesSearch && matchesFilter;
     });
-  }, [searchTerm, selectedFilter, locations]);
+
+    // Then sort by rating (descending) and then by name (ascending)
+    return filtered.sort((a, b) => {
+      const ratingA = locationRatings[a.id] || 0;
+      const ratingB = locationRatings[b.id] || 0;
+      
+      // First sort by rating (higher ratings first)
+      if (ratingB !== ratingA) {
+        return ratingB - ratingA;
+      }
+      
+      // If ratings are the same, sort alphabetically by name
+      const nameA = a.locationName?.toLowerCase() || '';
+      const nameB = b.locationName?.toLowerCase() || '';
+      
+      if (nameA < nameB) return -1;
+      if (nameA > nameB) return 1;
+      return 0;
+    });
+  }, [searchTerm, selectedFilter, locations, locationRatings]);
 
   // Pagination
   const totalPages = Math.ceil(filteredLocations.length / locationsPerPage);
   const startIndex = (currentPage - 1) * locationsPerPage;
   const currentLocations = filteredLocations.slice(startIndex, startIndex + locationsPerPage);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedFilter]);
+
   const handleLocationClick = (location) => {
-    setSelectedLocation(location);
+    navigate(`/locations/${location.id}`);
   };
 
   const handleLoadMore = () => {
@@ -145,10 +160,6 @@ export const LocationsPage = () => {
     }
   };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedFilter]);
-
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -161,12 +172,6 @@ export const LocationsPage = () => {
       });
     }
   };
-
-  if (selectedLocation) {
-    return (
-      <LocationDetail location={selectedLocation} onBack={() => setSelectedLocation(null)} />
-    );
-  }
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16 ${styles.locationsPage}`}>
@@ -185,52 +190,19 @@ export const LocationsPage = () => {
         <SearchAndFilter
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          selectedFilter={selectedFilter}
-          onFilterChange={setSelectedFilter}
+          selectedLocation={selectedFilter}
+          onLocationChange={setSelectedFilter}
+          filterOptions={categoryFilters}
           placeholder='Search locations...'
+          isLocationPage={true}
         />
-        
-        {/* Category filter */}
-        <div className="flex justify-between items-center mt-4">
-          <div className="relative">
-            <button
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-50 transition-all"
-            >
-              <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-              <span className="text-gray-700">
-                {filters.find(f => f.value === selectedFilter)?.label || 'Select Category'}
-              </span>
-              <ChevronDown className="w-4 h-4 ml-2 text-gray-500" />
-            </button>
-            {isFilterOpen && (
-              <div className="absolute mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                {filters.map(filter => (
-                  <div
-                    key={filter.value}
-                    onClick={() => {
-                      setSelectedFilter(filter.value);
-                      setIsFilterOpen(false);
-                    }}
-                    className={`flex items-center px-4 py-2 hover:bg-gray-100 transition-all ${
-                      filter.value === selectedFilter ? 'bg-gray-100' : ''
-                    }`}
-                  >
-                    <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                    <span className="text-gray-700">{filter.label}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Loading State */}
         {isLoading && (
           <div className="text-center py-16">
-            <div className="text-6xl mb-4">⛰️</div>
+            <div className="text-6xl mb-4">🏕️🌄🏝️🗻</div>
             <h3 className="text-2xl font-semibold text-gray-900 mb-2">Loading locations...</h3>
-            <p className="text-gray-600">Please wait while we fetch the best destinations for you</p>
+            <p className="text-gray-600">Please wait while we organize the best destinations for you</p>
           </div>
         )}
 

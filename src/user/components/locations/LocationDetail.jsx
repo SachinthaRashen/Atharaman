@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, ChevronLeft, ChevronRight, Star, Mountain} from 'lucide-react';
 import WeatherWidget from './WeatherWidget';
+import LocationMap from './LocationMap';
 import styles from '../../styles/LocationDetails.module.css';
 import Navbar from '../Navbar';
 import {
   getReviewsByEntity,
-  getGuidesByLocation,
-  getShopsByLocation,
-  getHotelsByLocation,
-  getVehiclesByLocation
+  getRelatedData
 } from '../../../services/api';
 import ReviewSection from '../ReviewSection';
 import { GuideCard } from '../guides/GuideCard';
@@ -60,84 +58,29 @@ const LocationDetail = ({ location, onBack }) => {
     fetchLocationReviews();
   }, [location]);
 
+  // Fetch all related data in a single API call
   useEffect(() => {
-    const fetchGuides = async () => {
-      if (location?.locationName) {
+    const fetchRelatedData = async () => {
+      if (location?.id) {
         try {
           setLoading(true);
-          const response = await getGuidesByLocation(location.locationName);
-          setGuides(response.data);
+          const response = await getRelatedData(location.id);
+          
+          if (response.data.success) {
+            setGuides(response.data.data.guides || []);
+            setShops(response.data.data.shops || []);
+            setHotels(response.data.data.hotels || []);
+            setVehicles(response.data.data.vehicles || []);
+          }
         } catch (error) {
-          console.error('Error fetching guides:', error);
+          console.error('Error fetching related data:', error);
         } finally {
           setLoading(false);
         }
       }
     };
 
-    if (location) {
-      fetchGuides();
-    }
-  }, [location]);
-
-  useEffect(() => {
-    const fetchShops = async () => {
-      if (location?.locationName) {
-        try {
-          setLoading(true);
-          const response = await getShopsByLocation(location.locationName);
-          setShops(response.data);
-        } catch (error) {
-          console.error('Error fetching shops:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    if (location) {
-      fetchShops();
-    }
-  }, [location]);
-
-  useEffect(() => {
-    const fetchHotels = async () => {
-      if (location?.locationName) {
-        try {
-          setLoading(true);
-          const response = await getHotelsByLocation(location.locationName);
-          setHotels(response.data);
-        } catch (error) {
-          console.error('Error fetching hotels:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    if (location) {
-      fetchHotels();
-    }
-  }, [location]);
-
-  useEffect(() => {
-    const fetchVehicles = async () => {
-      if (location?.locationName) {
-        try {
-          setLoading(true);
-          const response = await getVehiclesByLocation(location.locationName);
-          setVehicles(response.data);
-        } catch (error) {
-          console.error('Error fetching vehicles:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    if (location) {
-      fetchVehicles();
-    }
+    fetchRelatedData();
   }, [location]);
 
   const scrollToSection = (sectionId) => {
@@ -340,17 +283,14 @@ const LocationDetail = ({ location, onBack }) => {
                 </div>
 
                 {/* Map Section */}
-                <div className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger1}`}>
+                <div
+                  className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger1}`}>
                   <h2 className="text-2xl font-bold text-gray-900 mb-6">Location Map</h2>
-                  <div className="bg-gradient-to-br from-blue-100 to-green-100 rounded-xl h-64 flex items-center justify-center">
-                    <div className="text-center">
-                      <MapPin size={48} className="text-blue-500 mx-auto mb-4" />
-                      <p className="text-gray-600">Interactive map will be integrated here</p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Coordinates: {location.latitude}, {location.longitude}
-                      </p>
-                    </div>
-                  </div>
+                  <LocationMap
+                    latitude={location.latitude}
+                    longitude={location.longitude}
+                    name={location.locationName}
+                  />
                 </div>
 
                 {/* Guides Section */}
@@ -387,7 +327,7 @@ const LocationDetail = ({ location, onBack }) => {
                       {shops.map(shop => (
                         <ShopCard
                           key={shop.id}
-                          guide={shop}
+                          shop={shop}
                           onClick={handleShopClick}
                         />
                       ))}
@@ -409,7 +349,7 @@ const LocationDetail = ({ location, onBack }) => {
                       {hotels.map(hotel => (
                         <HotelCard
                           key={hotel.id}
-                          guide={hotel}
+                          hotel={hotel}
                           onClick={handleHotelClick}
                         />
                       ))}
@@ -431,7 +371,7 @@ const LocationDetail = ({ location, onBack }) => {
                       {vehicles.map(vehicle => (
                         <VehicleCard 
                           key={vehicle.id} 
-                          guide={vehicle} 
+                          vehicle={vehicle} 
                           onClick={handleVehicleClick}
                         />
                       ))}

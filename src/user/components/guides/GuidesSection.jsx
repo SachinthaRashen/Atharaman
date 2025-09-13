@@ -1,55 +1,133 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import SearchAndFilter from '../SearchAndFilter';
 import GuideCard from './GuideCard';
-import GuideDetail from './GuideDetail';
 import Navbar from '../Navbar';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export const GuidesSection = () => {
   const [guides, setGuides] = useState([]);
+  const [allLocations, setAllLocations] = useState([]);
+  const [guideRatings, setGuideRatings] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
-  const [selectedGuide, setSelectedGuide] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const guidesPerPage = 3;
+  const [isLoading, setIsLoading] = useState(true);
+  const guidesPerPage = 9;
+  const navigate = useNavigate();
 
-  // Fetch data
+  // Fetch all locations from API
   useEffect(() => {
-    axios
-      .get('http://localhost:8000/api/guides')
-      .then((response) => setGuides(response.data))
-      .catch((error) => console.error('Error fetching guides:', error));
+    const fetchLocations = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get('http://localhost:8000/api/locations');
+        const locationNames = response.data.map(location => location.locationName);
+        setAllLocations(['All Locations', ...locationNames.sort()]);
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLocations();
   }, []);
 
+  // Fetch guides from API
+  useEffect(() => {
+    const fetchGuides = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get('http://localhost:8000/api/guides');
+        setGuides(response.data);
+
+        // Fetch ratings for each guide
+        const ratings = {};
+        for (const guide of response.data) {
+          try {
+            const reviewsResponse = await axios.get(`http://localhost:8000/api/reviews/entity/guide/${guide.id}`);
+            if (reviewsResponse.data.length > 0) {
+              const totalRating = reviewsResponse.data.reduce((sum, review) => sum + Number(review.rating), 0);
+              ratings[guide.id] = Number((totalRating / reviewsResponse.data.length).toFixed(1));
+            } else {
+              ratings[guide.id] = 0;
+            }
+          } catch (error) {
+            console.error('Error fetching reviews for guide:', guide.id, error);
+            ratings[guide.id] = 0;
+          }
+        }
+        setGuideRatings(ratings);
+      } catch (error) {
+        console.error('Error fetching guides:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchGuides();
+  }, []);
+
+  // Filtering and sorting
   const filteredGuides = useMemo(() => {
-    return guides.filter((guide) => {
-      const matchesSearch = guide.guideName
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesLocation =
-        selectedLocation === 'All Locations' ||
-        (guide.locations && guide.locations.includes(selectedLocation));
+    // First filter the guides
+    const filtered = guides.filter((guide) => {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        guide.guideName?.toLowerCase().includes(searchLower);
+      
+      // Check if the guide has the selected location in their locations array
+      const hasLocation = guide.locations && Array.isArray(guide.locations) && 
+                         guide.locations.some(loc => loc === selectedLocation);
+      
+      const matchesLocation = selectedLocation === 'All Locations' || hasLocation;
+      
       return matchesSearch && matchesLocation;
     });
-  }, [searchTerm, selectedLocation, guides]);
+
+    // Then sort by rating (descending) and then by name (ascending)
+    return filtered.sort((a, b) => {
+      const ratingA = guideRatings[a.id] || 0;
+      const ratingB = guideRatings[b.id] || 0;
+      
+      // First sort by rating (higher ratings first)
+      if (ratingB !== ratingA) {
+        return ratingB - ratingA;
+      }
+      
+      // If ratings are the same, sort alphabetically by name
+      const nameA = a.guideName?.toLowerCase() || '';
+      const nameB = b.guideName?.toLowerCase() || '';
+      
+      if (nameA < nameB) return -1;
+      if (nameA > nameB) return 1;
+      return 0;
+    });
+  }, [searchTerm, selectedLocation, guides, guideRatings]);
+
+  // Check if selected location has any guides
+  const hasGuidesForSelectedLocation = useMemo(() => {
+    if (selectedLocation === 'All Locations') return true;
+    
+    return guides.some(guide => 
+      guide.locations && Array.isArray(guide.locations) && 
+      guide.locations.includes(selectedLocation)
+    );
+  }, [selectedLocation, guides]);
 
   // Pagination
   const totalPages = Math.ceil(filteredGuides.length / guidesPerPage);
   const startIndex = (currentPage - 1) * guidesPerPage;
-  const currentGuides = filteredGuides.slice(
-    startIndex,
-    startIndex + guidesPerPage
-  );
+  const currentGuides = filteredGuides.slice(startIndex, startIndex + guidesPerPage);
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedLocation]);
 
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+  const handleGuideClick = (guide) => {
+    navigate(`/guides/${guide.id}`);
   };
 
   const handleLoadMore = () => {
@@ -58,16 +136,16 @@ export const GuidesSection = () => {
     }
   };
 
-  if (selectedGuide) {
-    return (
-      <GuideDetail guide={selectedGuide} onBack={() => setSelectedGuide(null)} />
-    );
-  }
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      const navbarHeight = 64; // Match your navbar height
+      const navbarHeight = 64;
       const elementPosition =
         element.getBoundingClientRect().top + window.scrollY - navbarHeight;
       window.scrollTo({
@@ -78,7 +156,7 @@ export const GuidesSection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16">
       <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
@@ -90,67 +168,102 @@ export const GuidesSection = () => {
           </p>
         </div>
 
+        {/* Search & Filter */}
         <SearchAndFilter
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           selectedLocation={selectedLocation}
           onLocationChange={setSelectedLocation}
-          placeholder="Search guides by name..."
+          showLocationFilter={true}
+          locations={allLocations}
+          placeholder="Search guides..."
+          isLocationPage={false}
         />
 
-        {/* Guides Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentGuides.map((guide) => (
-            <GuideCard key={guide.id} guide={guide} onClick={setSelectedGuide} />
-          ))}
-        </div>
+        {/* Loading State */}
+        {(isLoading) && (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">🧭👨‍🦯👩‍🦯🗺️</div>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-2">Loading guides...</h3>
+            <p className="text-gray-600">Please wait while we organize the best guides for you</p>
+          </div>
+        )}
 
-        {/* No Results */}
-        {filteredGuides.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              No guides found matching your criteria.
+        {/* No Guides for Selected Location Message */}
+        {!isLoading && selectedLocation !== 'All Locations' && !hasGuidesForSelectedLocation && (
+          <div className="text-center py-12 bg-yellow-50 rounded-lg border border-yellow-200 mb-6">
+            <div className="text-6xl mb-4">🧭</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No guides available for {selectedLocation}</h3>
+            <p className="text-gray-600">
+              We don't have any guides assigned to this location yet. 
+              Try selecting a different location or browse all guides.
             </p>
           </div>
         )}
 
-        {/* Pagination */}
-        {filteredGuides.length > guidesPerPage && (
-          <div className="flex justify-center items-center space-x-4 mt-8">
-            {/* Previous Button */}
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="px-6 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              Previous
-            </button>
-
-            {/* Page Numbers */}
-            <div className="flex items-center space-x-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-10 h-10 rounded-lg transition ${
-                    currentPage === page
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {page}
-                </button>
+        {/* Guides Grid */}
+        {!isLoading && filteredGuides.length > 0 && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentGuides.map((guide, index) => (
+                <GuideCard 
+                  key={guide.id}
+                  guide={guide}
+                  rating={guideRatings[guide.id] || 0}
+                  onClick={() => handleGuideClick(guide)}
+                  animationDelay={index * 0.1}
+                />
               ))}
             </div>
 
-            {/* Load More */}
-            <button
-              onClick={handleLoadMore}
-              disabled={currentPage === totalPages}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              Load More
-            </button>
+            {/* Pagination */}
+            {filteredGuides.length > guidesPerPage && (
+              <div className="flex justify-center items-center space-x-4 mt-8">
+                {/* Previous Button */}
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className="px-6 py-3 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center space-x-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-10 h-10 rounded-lg transition-all ${
+                        currentPage === page
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Load More */}
+                <button
+                  onClick={handleLoadMore}
+                  disabled={currentPage === totalPages}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* No Results from Search */}
+        {!isLoading && filteredGuides.length === 0 && hasGuidesForSelectedLocation && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No guides found</h3>
+            <p className="text-gray-600">Try adjusting your search criteria</p>
           </div>
         )}
       </main>
