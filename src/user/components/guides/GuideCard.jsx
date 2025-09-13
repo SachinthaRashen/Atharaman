@@ -3,11 +3,13 @@ import { Star, Phone } from 'lucide-react';
 import { getGuideImageUrls, getMainGuideImage } from '../../../helpers/ImageHelpers';
 import { useNavigate } from 'react-router-dom';
 
-export const GuideCard = ({ guide, rating, animationDelay = 0 }) => {
+export const GuideCard = ({ guide, rating, animationDelay = 0, isClickable = true }) => {
   const navigate = useNavigate();
   
   const handleClick = () => {
-    navigate(`/guides/${guide.id}`);
+    if (isClickable) {
+      navigate(`/guides/${guide.id}`);
+    }
   };
 
   const imageUrls = getGuideImageUrls(guide);
@@ -15,7 +17,9 @@ export const GuideCard = ({ guide, rating, animationDelay = 0 }) => {
 
   return (
     <div 
-      className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+      className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+        isClickable ? 'cursor-pointer' : 'cursor-default'
+      }`}
       style={{ animationDelay: `${animationDelay}s` }}
       onClick={handleClick}
     >
@@ -55,8 +59,10 @@ export const GuideCard = ({ guide, rating, animationDelay = 0 }) => {
         </p>
       </div>
 
-      {/* Hover Effect Overlay */}
-      <div className={"absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 hover:opacity-100 transition-opacity duration-300"}></div>
+      {/* Hover Effect Overlay - Only show if clickable */}
+      {isClickable && (
+        <div className={"absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 hover:opacity-100 transition-opacity duration-300"}></div>
+      )}
     </div>
   );
 };
