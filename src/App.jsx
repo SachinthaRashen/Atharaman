@@ -22,6 +22,7 @@ import GuidesSection from './user/components/guides/GuidesSection';
 import HotelsSection from './user/components/hotels/HotelsSection';
 import ShopsSection from './user/components/shops/ShopsSection';
 import VehiclesSection from './user/components/vehicles/VehiclesSection';
+
 // User Pages
 import Home from './user/pages/Home';
 import UserProfilePage from './user/pages/UserProfilePage';
