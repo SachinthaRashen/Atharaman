@@ -365,7 +365,8 @@ const LocationDetail = ({ location, onBack }) => {
               <div className="space-y-8">
                 {/* Weather Widget */}
                 <div className={`${styles.animateSlideInRight}`}>
-                  <WeatherWidget location={location} />
+                  <WeatherWidget location={{ latitude: location.latitude, longitude: location.longitude }} />
+
                 </div>
 
                 {/* Quick Info */}
