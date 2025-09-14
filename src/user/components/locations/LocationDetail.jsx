@@ -5,10 +5,7 @@ import WeatherWidget from './WeatherWidget';
 import LocationMap from './LocationMap';
 import styles from '../../styles/LocationDetails.module.css';
 import Navbar from '../Navbar';
-import {
-  getReviewsByEntity,
-  getRelatedData
-} from '../../../services/api';
+import { getRelatedData } from '../../../services/api';
 import ReviewSection from '../ReviewSection';
 import { GuideCard } from '../guides/GuideCard';
 import GuideDetail from '../guides/GuideDetail';

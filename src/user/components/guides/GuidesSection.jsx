@@ -1,3 +1,4 @@
+// In GuidesSection.jsx
 import React, { useState, useMemo, useEffect } from 'react';
 import SearchAndFilter from '../SearchAndFilter';
 import GuideCard from './GuideCard';
@@ -7,9 +8,8 @@ import { useNavigate } from 'react-router-dom';
 
 export const GuidesSection = () => {
   const [guides, setGuides] = useState([]);
-  const [allLocations, setAllLocations] = useState([]);
-  const [guideRatings, setGuideRatings] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [allLocations, setAllLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,45 +20,24 @@ export const GuidesSection = () => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        setIsLoading(true);
         const response = await axios.get('http://localhost:8000/api/locations');
         const locationNames = response.data.map(location => location.locationName);
         setAllLocations(['All Locations', ...locationNames.sort()]);
       } catch (error) {
         console.error('Error fetching locations:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchLocations();
   }, []);
 
-  // Fetch guides from API
+  // Fetch guides from API with reviews
   useEffect(() => {
     const fetchGuides = async () => {
       try {
         setIsLoading(true);
         const response = await axios.get('http://localhost:8000/api/guides');
         setGuides(response.data);
-
-        // Fetch ratings for each guide
-        const ratings = {};
-        for (const guide of response.data) {
-          try {
-            const reviewsResponse = await axios.get(`http://localhost:8000/api/reviews/entity/guide/${guide.id}`);
-            if (reviewsResponse.data.length > 0) {
-              const totalRating = reviewsResponse.data.reduce((sum, review) => sum + Number(review.rating), 0);
-              ratings[guide.id] = Number((totalRating / reviewsResponse.data.length).toFixed(1));
-            } else {
-              ratings[guide.id] = 0;
-            }
-          } catch (error) {
-            console.error('Error fetching reviews for guide:', guide.id, error);
-            ratings[guide.id] = 0;
-          }
-        }
-        setGuideRatings(ratings);
       } catch (error) {
         console.error('Error fetching guides:', error);
       } finally {
@@ -88,8 +67,8 @@ export const GuidesSection = () => {
 
     // Then sort by rating (descending) and then by name (ascending)
     return filtered.sort((a, b) => {
-      const ratingA = guideRatings[a.id] || 0;
-      const ratingB = guideRatings[b.id] || 0;
+      const ratingA = a.reviews_avg_rating || 0;
+      const ratingB = b.reviews_avg_rating || 0;
       
       // First sort by rating (higher ratings first)
       if (ratingB !== ratingA) {
@@ -104,7 +83,7 @@ export const GuidesSection = () => {
       if (nameA > nameB) return 1;
       return 0;
     });
-  }, [searchTerm, selectedLocation, guides, guideRatings]);
+  }, [searchTerm, selectedLocation, guides]);
 
   // Check if selected location has any guides
   const hasGuidesForSelectedLocation = useMemo(() => {
@@ -181,7 +160,7 @@ export const GuidesSection = () => {
         />
 
         {/* Loading State */}
-        {(isLoading) && (
+        {isLoading && (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🧭👨‍🦯👩‍🦯🗺️</div>
             <h3 className="text-2xl font-semibold text-gray-900 mb-2">Loading guides...</h3>
@@ -209,7 +188,8 @@ export const GuidesSection = () => {
                 <GuideCard 
                   key={guide.id}
                   guide={guide}
-                  rating={guideRatings[guide.id] || 0}
+                  rating={guide.reviews_avg_rating || 0}
+                  reviewCount={guide.reviews_count || 0}
                   onClick={() => handleGuideClick(guide)}
                   animationDelay={index * 0.1}
                 />

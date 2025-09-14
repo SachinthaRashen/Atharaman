@@ -1,47 +1,25 @@
+// In GuideDetail.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Star, Mail, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa6';
 import Navbar from '../Navbar';
 import ReviewSection from '../ReviewSection';
-import { getReviewsByEntity, getLocations } from '../../../services/api';
-import { getGuideImageUrls, getMainGuideImage } from '../../../helpers/ImageHelpers';
+import { getLocations } from '../../../services/api';
 import { LocationCard } from '../locations/LocationCard';
-import LocationDetail from '../locations/LocationDetail';
 
 const GuideDetail = ({ guide, onBack }) => {
-  const [reviews, setReviews] = useState([]);
-  const [averageRating, setAverageRating] = useState(0);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
+  // Use the same approach as LocationDetail for handling reviews
+  const reviews = guide.reviews || guide.reviews?.data || [];
+  const averageRating = guide.reviews_avg_rating ? parseFloat(guide.reviews_avg_rating) : 0;
+  const reviewCount = guide.reviews_count || reviews.length;
+  
   const [locations, setLocations] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
   const [locationsLoading, setLocationsLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const navigate = useNavigate();
 
-  const imageUrls = getGuideImageUrls(guide);
-  const mainImage = getMainGuideImage(guide);
-
   useEffect(() => {
-    const fetchGuideReviews = async () => {
-      if (guide?.id) {
-        try {
-          setReviewsLoading(true);
-          const response = await getReviewsByEntity('guide', guide.id);
-          setReviews(response.data);
-          
-          if (response.data.length > 0) {
-            const totalRating = response.data.reduce((sum, review) => sum + review.rating, 0);
-            setAverageRating(totalRating / response.data.length);
-          }
-        } catch (error) {
-          console.error('Error fetching guide reviews:', error);
-        } finally {
-          setReviewsLoading(false);
-        }
-      }
-    };
-
     const fetchGuideLocations = async () => {
       if (guide?.locations && guide.locations.length > 0) {
         try {
@@ -67,7 +45,6 @@ const GuideDetail = ({ guide, onBack }) => {
       }
     };
 
-    fetchGuideReviews();
     fetchGuideLocations();
   }, [guide]);
 
@@ -85,10 +62,11 @@ const GuideDetail = ({ guide, onBack }) => {
   };
 
   const renderStars = (rating) => {
+    const numericRating = typeof rating === 'number' ? rating : parseFloat(rating) || 0;
     return Array.from({ length: 5 }, (_, i) => (
       <span
         key={i}
-        className={`text-lg ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
+        className={`text-lg ${i < Math.round(numericRating) ? 'text-yellow-400' : 'text-gray-300'}`}
       >
         ★
       </span>
@@ -99,7 +77,7 @@ const GuideDetail = ({ guide, onBack }) => {
     if (onBack) {
       onBack();
     } else {
-      navigate('/guides');
+      navigate('/guides', { replace: true }); // Use replace to avoid history buildup
     }
   };
 
@@ -118,18 +96,6 @@ const GuideDetail = ({ guide, onBack }) => {
       );
     }
   };
-
-  const handleLocationClick = (location) => {
-    setSelectedLocation(location);
-  };
-
-  const handleLocationBack = () => {
-    setSelectedLocation(null);
-  };
-
-  if (selectedLocation) {
-    return <LocationDetail location={selectedLocation} onBack={handleLocationBack} />;
-  }
 
   if (!guide) {
     return (
@@ -218,9 +184,9 @@ const GuideDetail = ({ guide, onBack }) => {
             {averageRating > 0 && (
               <div className="flex items-center mb-6">
                 <div className="flex items-center">
-                  {renderStars(Math.round(averageRating))}
+                  {renderStars(averageRating)}
                   <span className="ml-2 text-gray-600">
-                    {averageRating.toFixed(1)} ({reviews.length} reviews)
+                    {averageRating.toFixed(1)} ({reviewCount} reviews)
                   </span>
                 </div>
               </div>
@@ -284,6 +250,37 @@ const GuideDetail = ({ guide, onBack }) => {
               </div>
             )}
 
+            {/* Related Locations Section */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Specialized Locations</h2>
+              {locationsLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+              ) : locations.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {locations.map(location => (
+                    <LocationCard 
+                      key={location.id} 
+                      location={location} 
+                      // Make location cards read-only (non-clickable)
+                      isClickable={false}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No locations available for this guide.</p>
+                  {guide.locations && guide.locations.length > 0 && (
+                    <p className="text-sm text-gray-400 mt-2">
+                      The guide specializes in: {guide.locations.join(', ')}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Contact Button */}
             {(guide.businessMail || guide.personalNumber) && (
               <div className="mt-8 pt-8 border-t">
@@ -308,33 +305,6 @@ const GuideDetail = ({ guide, onBack }) => {
                 </div>
               </div>
             )}
-
-            {/* Related Locations Section */}
-            {locationsLoading ? (
-              <div className="mt-8 pt-8 border-t8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              </div>
-            ) : locations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {locations.map(location => (
-                  <LocationCard 
-                    key={location.id} 
-                    location={location} 
-                    onClick={() => handleLocationClick(location)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No locations available for this guide.</p>
-                {guide.locations && guide.locations.length > 0 && (
-                  <p className="text-sm text-gray-400 mt-2">
-                    The guide specializes in: {guide.locations.join(', ')}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Reviews Section */}
@@ -343,7 +313,7 @@ const GuideDetail = ({ guide, onBack }) => {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h2>
               
               {/* Reviews Summary */}
-              {reviews.length > 0 ? (
+              {reviewCount > 0 ? (
                 <div className="bg-gray-50 rounded-lg p-6 mb-6">
                   <div className="flex flex-col md:flex-row items-center gap-6">
                     <div className="text-center">
@@ -351,17 +321,21 @@ const GuideDetail = ({ guide, onBack }) => {
                         {averageRating.toFixed(1)}
                       </div>
                       <div className="flex justify-center mt-1">
-                        {renderStars(Math.round(averageRating))}
+                        {renderStars(averageRating)}
                       </div>
                       <div className="text-sm text-gray-500 mt-1">
-                        {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+                        {reviewCount} review{reviewCount !== 1 ? 's' : ''}
                       </div>
                     </div>
                     
                     <div className="flex-1 space-y-2">
                       {[5, 4, 3, 2, 1].map((star) => {
-                        const count = reviews.filter(review => review.rating === star).length;
-                        const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                        const count = reviews.filter(review => {
+                          const rating = typeof review.rating === 'number' ? review.rating : parseFloat(review.rating) || 0;
+                          return Math.round(rating) === star;
+                        }).length;
+                        
+                        const percentage = reviewCount > 0 ? (count / reviewCount) * 100 : 0;
                         
                         return (
                           <div key={star} className="flex items-center gap-2">
@@ -383,11 +357,9 @@ const GuideDetail = ({ guide, onBack }) => {
                   </div>
                 </div>
               ) : (
-                !reviewsLoading && (
-                  <div className="bg-gray-50 rounded-lg p-6 mb-6 text-center">
-                    <p className="text-gray-500">No reviews yet. Be the first to review this guide!</p>
-                  </div>
-                )
+                <div className="bg-gray-50 rounded-lg p-6 mb-6 text-center">
+                  <p className="text-gray-500">No reviews yet. Be the first to review this guide!</p>
+                </div>
               )}
 
               {/* ReviewSection Component */}
