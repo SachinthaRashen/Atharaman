@@ -3,11 +3,13 @@ import { MapPin, Star } from 'lucide-react';
 import styles from '../../styles/LocationsPage.module.css';
 import { useNavigate } from 'react-router-dom';
 
-export const LocationCard = ({ location, rating, animationDelay = 0 }) => {
+export const LocationCard = ({ location, rating, animationDelay = 0, isClickable = true }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/locations/${location.id}`);
+    if (isClickable) {
+      navigate(`/locations/${location.id}`);
+    }
   };
 
   // Function to determine category based on location name or description
