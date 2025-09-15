@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 
 export const LocationsPage = () => {
   const [locations, setLocations] = useState([]);
-  const [locationRatings, setLocationRatings] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,28 +65,13 @@ export const LocationsPage = () => {
         // Add category to each location using our unified system
         const locationsWithCategory = response.data.map(location => ({
           ...location,
-          category: getCategory(location)
+          category: getCategory(location),
+          // Ratings are now included in the response
+          averageRating: location.reviews_avg_rating || 0,
+          reviewCount: location.reviews_count || 0
         }));
         
         setLocations(locationsWithCategory);
-        
-        // Fetch ratings for each location
-        const ratings = {};
-        for (const location of response.data) {
-          try {
-            const reviewsResponse = await axios.get(`http://localhost:8000/api/reviews/entity/location/${location.id}`);
-            if (reviewsResponse.data.length > 0) {
-              const totalRating = reviewsResponse.data.reduce((sum, review) => sum + Number(review.rating), 0);
-              ratings[location.id] = Number((totalRating / reviewsResponse.data.length).toFixed(1));
-            } else {
-              ratings[location.id] = 0;
-            }
-          } catch (error) {
-            console.error('Error fetching reviews for location:', location.id, error);
-            ratings[location.id] = 0;
-          }
-        }
-        setLocationRatings(ratings);
       } catch (error) {
         console.error('Error fetching locations:', error);
       } finally {
@@ -117,8 +101,8 @@ export const LocationsPage = () => {
 
     // Then sort by rating (descending) and then by name (ascending)
     return filtered.sort((a, b) => {
-      const ratingA = locationRatings[a.id] || 0;
-      const ratingB = locationRatings[b.id] || 0;
+      const ratingA = a.averageRating || 0;
+      const ratingB = b.averageRating || 0;
       
       // First sort by rating (higher ratings first)
       if (ratingB !== ratingA) {
@@ -133,7 +117,7 @@ export const LocationsPage = () => {
       if (nameA > nameB) return 1;
       return 0;
     });
-  }, [searchTerm, selectedFilter, locations, locationRatings]);
+  }, [searchTerm, selectedFilter, locations]);
 
   // Pagination
   const totalPages = Math.ceil(filteredLocations.length / locationsPerPage);
@@ -214,7 +198,7 @@ export const LocationsPage = () => {
                 <LocationCard
                   key={location.id}
                   location={location}
-                  rating={locationRatings[location.id] || 0}
+                  rating={location.averageRating || 0}
                   onClick={() => handleLocationClick(location)}
                   animationDelay={index * 0.1}
                 />

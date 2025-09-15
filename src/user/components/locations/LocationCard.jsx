@@ -3,11 +3,13 @@ import { MapPin, Star } from 'lucide-react';
 import styles from '../../styles/LocationsPage.module.css';
 import { useNavigate } from 'react-router-dom';
 
-export const LocationCard = ({ location, rating, animationDelay = 0 }) => {
+export const LocationCard = ({ location, rating, animationDelay = 0, isClickable = true }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/locations/${location.id}`);
+    if (isClickable) {
+      navigate(`/locations/${location.id}`);
+    }
   };
 
   // Function to determine category based on location name or description
@@ -41,14 +43,20 @@ export const LocationCard = ({ location, rating, animationDelay = 0 }) => {
     ? `http://localhost:8000/storage/${location.locationImage[0]}`
     : '/placeholder-image.jpg';
 
+  // Handle both string and number ratings
+  const safeRating = typeof rating === 'number' ? rating : 
+                    typeof rating === 'string' ? parseFloat(rating) : 0;
+  const hasRating = safeRating > 0;
+  const displayRating = safeRating.toFixed(1);
+
   return (
     <div
       className={`bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl ${styles.locationCard} ${styles.animateSlideInCard}`}
       style={{ animationDelay: `${animationDelay}s` }}
       onClick={handleClick}
     >
-      {/* Image */}
-      <div className="relative overflow-hidden h-48">
+      {/* Image - Increased height */}
+      <div className="relative overflow-hidden h-56"> {/* Increased from h-48 to h-56 */}
         <img
           src={imageUrl}
           alt={location.locationName || "Location"}
@@ -65,28 +73,39 @@ export const LocationCard = ({ location, rating, animationDelay = 0 }) => {
         </div>
 
         {/* Rating Badge - Only show if rating exists */}
-        {rating > 0 && (
+        {hasRating && (
           <div className="absolute top-4 right-4 px-2 py-1 bg-black/70 backdrop-blur-sm rounded-full flex items-center">
             <Star size={14} className="text-yellow-400 fill-current mr-1" />
-            <span className="text-xs text-white font-semibold">{rating.toFixed(1)}</span>
+            <span className="text-xs text-white font-semibold">{displayRating}</span>
           </div>
         )}
       </div>
 
-      {/* Content */}
-      <div className="p-6">
-        <h3 className={`text-xl font-bold text-gray-900 mb-2 line-clamp-1 ${styles.cardTitle}`}>
+      {/* Content - Improved spacing */}
+      <div className="p-6 space-y-3"> {/* Added space-y-3 for consistent spacing */}
+        {/* Location Name */}
+        <h3 className={`text-xl font-bold text-gray-900 line-clamp-1 ${styles.cardTitle}`}>
           {location.locationName}
         </h3>
         
-        <div className={`flex items-center text-gray-600 mb-3 ${styles.locationInfo}`}>
+        {/* Province */}
+        <div className={`flex items-center text-gray-600 ${styles.locationInfo}`}>
           <MapPin size={16} className="mr-2 flex-shrink-0" />
           <span className="text-sm line-clamp-1">{location.province} Province</span>
         </div>
 
-        <p className={`text-gray-600 text-sm line-clamp-2 mb-4 leading-relaxed ${styles.description}`}>
+        {/* Description - Added more margin and reduced line-clamp */}
+        <p className={`text-gray-600 text-sm line-clamp-3 leading-relaxed ${styles.description} mt-2 mb-3`}>
           {location.shortDescription}
         </p>
+
+        {/* Show review count if available */}
+        {location.reviewCount > 0 && (
+          <div className="flex items-center text-sm text-gray-500 pt-2 border-t border-gray-100">
+            <Star size={14} className="text-yellow-400 fill-current mr-1" />
+            <span>{location.reviewCount} review{location.reviewCount !== 1 ? 's' : ''}</span>
+          </div>
+        )}
       </div>
 
       {/* Hover Effect Overlay */}
