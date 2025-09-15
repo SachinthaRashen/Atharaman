@@ -30,7 +30,7 @@ const VehicleForm = ({ vehicle, onSave, onCancel, selectedOwner }) => {
 
   const vehicleTypes = ['Car', 'Van', 'SUV', 'Jeep', 'Motorbike', 'Scooty', 'Tuk-tuk', 'Cab', 'Truck', 'Bus', 'Lorry', 'Footcycle'];
   const fuelTypes = ['Petrol', 'Diesel', 'Electric', 'Petrol Hybrid', 'Diesel Hybrid', 'None'];
-  const driverStatus = ['With/Without Driver', 'Only With Driver', 'Only Without Driver'];
+  const driverStatus = ['With/Without Driver', 'With Driver', 'Without Driver'];
   const [availableLocations, setAvailableLocations] = useState([]);
   const [loadingLocations, setLoadingLocations] = useState(false);
 

@@ -41,7 +41,7 @@ const LocationDetailPage = () => {
   }
 
   if (!location) {
-    return null; // Will redirect in useEffect
+    return null;
   }
 
   return <LocationDetail location={location} onBack={handleBack} />;

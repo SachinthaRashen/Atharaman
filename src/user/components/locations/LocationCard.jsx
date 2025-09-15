@@ -1,6 +1,6 @@
 import React from 'react';
-import { MapPin, Star } from 'lucide-react';
-import styles from '../../styles/LocationsPage.module.css';
+import { GlobeIcon, Star } from 'lucide-react';
+import styles from '../../styles/InitialPages.module.css';
 import { useNavigate } from 'react-router-dom';
 
 export const LocationCard = ({ location, rating, animationDelay = 0, isClickable = true }) => {
@@ -51,18 +51,17 @@ export const LocationCard = ({ location, rating, animationDelay = 0, isClickable
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl ${styles.locationCard} ${styles.animateSlideInCard}`}
+      className={`bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl ${styles.entityCard} ${styles.animateSlideInCard}`}
       style={{ animationDelay: `${animationDelay}s` }}
       onClick={handleClick}
     >
-      {/* Image - Increased height */}
-      <div className="relative overflow-hidden h-56"> {/* Increased from h-48 to h-56 */}
+      <div className="relative overflow-hidden h-56">
         <img
           src={imageUrl}
           alt={location.locationName || "Location"}
           className={`w-full h-full object-cover transition-transform duration-500 hover:scale-110 ${styles.cardImage}`}
           onError={(e) => {
-            e.target.src = '/placeholder-image.jpg';
+            e.target.src = '/default-location.jpg';
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
@@ -81,20 +80,18 @@ export const LocationCard = ({ location, rating, animationDelay = 0, isClickable
         )}
       </div>
 
-      {/* Content - Improved spacing */}
-      <div className="p-6 space-y-3"> {/* Added space-y-3 for consistent spacing */}
-        {/* Location Name */}
+      {/* Content */}
+      <div className="p-6 space-y-3">
         <h3 className={`text-xl font-bold text-gray-900 line-clamp-1 ${styles.cardTitle}`}>
           {location.locationName}
         </h3>
         
         {/* Province */}
-        <div className={`flex items-center text-gray-600 ${styles.locationInfo}`}>
-          <MapPin size={16} className="mr-2 flex-shrink-0" />
+        <div className={`flex items-center text-gray-600 ${styles.entityInfo}`}>
+          <GlobeIcon size={16} className="mr-2 flex-shrink-0" />
           <span className="text-sm line-clamp-1">{location.province} Province</span>
         </div>
 
-        {/* Description - Added more margin and reduced line-clamp */}
         <p className={`text-gray-600 text-sm line-clamp-3 leading-relaxed ${styles.description} mt-2 mb-3`}>
           {location.shortDescription}
         </p>

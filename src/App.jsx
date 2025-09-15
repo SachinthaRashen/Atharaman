@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-
+import ProtectedRoute from './services/ProtectedRoute';
 // Admin Components
 import Navbar from './admin/components/Navbar';
 import Sidebar from './admin/components/Sidebar';
@@ -18,11 +18,10 @@ import ManageReviews from './admin/pages/ManageReviews';
 import ManageUsers from './admin/pages/ManageUsers';
 // User Components
 import {LocationsPage} from './user/components/locations/LocationsPage';
-import GuidesSection from './user/components/guides/GuidesSection';
-import HotelsSection from './user/components/hotels/HotelsSection';
-import ShopsSection from './user/components/shops/ShopsSection';
-import VehiclesSection from './user/components/vehicles/VehiclesSection';
-
+import {GuidesSection} from './user/components/guides/GuidesSection';
+import {HotelsSection} from './user/components/hotels/HotelsSection';
+import {ShopsSection} from './user/components/shops/ShopsSection';
+import {VehiclesSection} from './user/components/vehicles/VehiclesSection';
 // User Pages
 import Home from './user/pages/Home';
 import UserProfilePage from './user/pages/UserProfilePage';
@@ -34,8 +33,9 @@ import ResetPassword from './user/pages/ResetPassword';
 import Unauthorized from './user/pages/Unauthorized';
 import LocationDetailPage from './user/pages/LocationDetailPage';
 import GuideDetailPage from './user/pages/GuideDetailPage';
-// Import ProtectedRoute
-import ProtectedRoute from './services/ProtectedRoute';
+import ShopDetailPage from './user/pages/ShopDetailPage';
+import HotelDetailPage from './user/pages/HotelDetailPage';
+import VehicleDetailPage from './user/pages/VehicleDetailPage';
 
 function AppContent() {
   const location = useLocation();
@@ -119,9 +119,12 @@ function AppContent() {
             <Route path="/locations/:id" element={<LocationDetailPage />} />
             <Route path="/guides" element={<GuidesSection />} />
             <Route path="/guides/:id" element={<GuideDetailPage />} />
-            <Route path="/hotels" element={<HotelsSection />} />
             <Route path="/shops" element={<ShopsSection />} />
+            <Route path="/shops/:id" element={<ShopDetailPage />} />
+            <Route path="/hotels" element={<HotelsSection />} />
+            <Route path="/hotels/:id" element={<HotelDetailPage />} />
             <Route path="/vehicles" element={<VehiclesSection />} />
+            <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />

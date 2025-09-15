@@ -1,5 +1,5 @@
-/* Locations Page Styles */
-.locationsPage {
+/* Initial Page Styles */
+.initialPage {
   min-height: 100vh;
 }
 
@@ -190,14 +190,14 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Location Card */
-.locationCard {
+/* Entity Card */
+.entityCard {
   background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
   border: 1px solid rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.locationCard:hover {
+.entityCard:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
@@ -206,7 +206,7 @@
   transition: transform 0.5s ease;
 }
 
-.locationCard:hover .cardImage {
+.entityCard:hover .cardImage {
   transform: scale(1.1);
 }
 
@@ -215,7 +215,7 @@
   transition: all 0.3s ease;
 }
 
-.locationCard:hover .categoryBadge {
+.entityCard:hover .categoryBadge {
   background: rgba(59, 130, 246, 0.9);
   color: white;
   transform: scale(1.05);
@@ -226,7 +226,7 @@
   transition: all 0.3s ease;
 }
 
-.locationCard:hover .ratingBadge {
+.entityCard:hover .ratingBadge {
   background: rgba(34, 197, 94, 0.9);
   color: white;
   transform: scale(1.05);
@@ -236,15 +236,15 @@
   transition: color 0.3s ease;
 }
 
-.locationCard:hover .cardTitle {
+.entityCard:hover .cardTitle {
   color: #2563eb;
 }
 
-.locationInfo {
+.entityInfo {
   transition: all 0.3s ease;
 }
 
-.locationCard:hover .locationInfo {
+.entityCard:hover .entityInfo {
   color: #059669;
 }
 
@@ -252,7 +252,7 @@
   transition: color 0.3s ease;
 }
 
-.locationCard:hover .description {
+.entityCard:hover .description {
   color: #374151;
 }
 
@@ -260,7 +260,7 @@
   transition: all 0.3s ease;
 }
 
-.locationCard:hover .bestTime {
+.entityCard:hover .bestTime {
   color: #7c3aed;
 }
 
@@ -268,7 +268,7 @@
   transition: all 0.3s ease;
 }
 
-.locationCard:hover .difficultyBadge {
+.entityCard:hover .difficultyBadge {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   transform: scale(1.05);
 }
@@ -277,19 +277,19 @@
   transition: opacity 0.3s ease;
 }
 
-/* Locations Grid */
-.locationsGrid {
+/* Entity Grid */
+.entitiesGrid {
   gap: 2rem;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .locationsGrid {
+  .entitiesGrid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
   
-  .locationCard {
+  .entityCard {
     margin: 0 1rem;
   }
 }
@@ -301,12 +301,12 @@
 }
 
 /* Loading States */
-.locationCard.loading {
+.entityCard.loading {
   opacity: 0.6;
   pointer-events: none;
 }
 
-.locationCard.loading::after {
+.entityCard.loading::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -327,7 +327,7 @@
 
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
-  .locationsPage * {
+  .initialPage * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -336,7 +336,7 @@
 
 /* High contrast mode */
 @media (prefers-contrast: high) {
-  .locationCard {
+  .entityCard {
     border: 2px solid #000000;
   }
   
@@ -349,7 +349,7 @@
 
 /* Print styles */
 @media print {
-  .locationsPage .no-print {
+  .initialPage .no-print {
     display: none !important;
   }
 }
