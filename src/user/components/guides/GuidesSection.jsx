@@ -1,5 +1,5 @@
-// In GuidesSection.jsx
 import React, { useState, useMemo, useEffect } from 'react';
+import styles from '../../styles/InitialPages.module.css';
 import SearchAndFilter from '../SearchAndFilter';
 import GuideCard from './GuideCard';
 import Navbar from '../Navbar';
@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 export const GuidesSection = () => {
   const [guides, setGuides] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoadingLocations, setIsLoadingLocations] = useState(true);
   const [allLocations, setAllLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,11 +21,14 @@ export const GuidesSection = () => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
+        setIsLoadingLocations(true);
         const response = await axios.get('http://localhost:8000/api/locations');
         const locationNames = response.data.map(location => location.locationName);
         setAllLocations(['All Locations', ...locationNames.sort()]);
       } catch (error) {
         console.error('Error fetching locations:', error);
+      } finally {
+        setIsLoadingLocations(false);
       }
     };
 
@@ -37,7 +41,15 @@ export const GuidesSection = () => {
       try {
         setIsLoading(true);
         const response = await axios.get('http://localhost:8000/api/guides');
-        setGuides(response.data);
+
+        const guidesWithReviews = response.data.map(guide => ({
+          ...guide,
+          // Ratings are now included in the response
+          averageRating: guide.reviews_avg_rating || 0,
+          reviewCount: guide.reviews_count || 0
+        }));
+
+        setGuides(guidesWithReviews);
       } catch (error) {
         console.error('Error fetching guides:', error);
       } finally {
@@ -67,8 +79,8 @@ export const GuidesSection = () => {
 
     // Then sort by rating (descending) and then by name (ascending)
     return filtered.sort((a, b) => {
-      const ratingA = a.reviews_avg_rating || 0;
-      const ratingB = b.reviews_avg_rating || 0;
+      const ratingA = a.averageRating || 0;
+      const ratingB = b.averageRating || 0;
       
       // First sort by rating (higher ratings first)
       if (ratingB !== ratingA) {
@@ -135,7 +147,7 @@ export const GuidesSection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16">
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16 ${styles.initialPage}`}>
       <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
@@ -174,7 +186,7 @@ export const GuidesSection = () => {
             <div className="text-6xl mb-4">🧭</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No guides available for {selectedLocation}</h3>
             <p className="text-gray-600">
-              We don't have any guides assigned to this location yet. 
+              We don't have any guides available to this location yet. 
               Try selecting a different location or browse all guides.
             </p>
           </div>
@@ -183,13 +195,12 @@ export const GuidesSection = () => {
         {/* Guides Grid */}
         {!isLoading && filteredGuides.length > 0 && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${styles.entitiesGrid}`}>
               {currentGuides.map((guide, index) => (
-                <GuideCard 
+                <GuideCard
                   key={guide.id}
                   guide={guide}
-                  rating={guide.reviews_avg_rating || 0}
-                  reviewCount={guide.reviews_count || 0}
+                  rating={guide.averageRating || 0}
                   onClick={() => handleGuideClick(guide)}
                   animationDelay={index * 0.1}
                 />
@@ -198,7 +209,7 @@ export const GuidesSection = () => {
 
             {/* Pagination */}
             {filteredGuides.length > guidesPerPage && (
-              <div className="flex justify-center items-center space-x-4 mt-8">
+              <div className={`flex justify-center items-center space-x-4 mt-12 ${styles.animateSlideInUp}`}>
                 {/* Previous Button */}
                 <button
                   onClick={handlePreviousPage}

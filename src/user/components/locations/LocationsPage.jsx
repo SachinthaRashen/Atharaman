@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import styles from '../../styles/LocationsPage.module.css';
+import styles from '../../styles/InitialPages.module.css';
 import SearchAndFilter from '../SearchAndFilter';
 import LocationCard from './LocationCard';
 import Navbar from '../Navbar';
@@ -61,7 +61,6 @@ export const LocationsPage = () => {
       try {
         setIsLoading(true);
         const response = await axios.get('http://localhost:8000/api/locations');
-        
         // Add category to each location using our unified system
         const locationsWithCategory = response.data.map(location => ({
           ...location,
@@ -158,7 +157,7 @@ export const LocationsPage = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16 ${styles.locationsPage}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16 ${styles.initialPage}`}>
       <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6">
@@ -193,7 +192,7 @@ export const LocationsPage = () => {
         {/* Locations Grid */}
         {!isLoading && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${styles.locationsGrid}`}>
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${styles.entitiesGrid}`}>
               {currentLocations.map((location, index) => (
                 <LocationCard
                   key={location.id}
