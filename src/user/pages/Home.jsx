@@ -4,13 +4,12 @@ import Hero from '../components/Hero';
 import ProductSection from '../components/ProductSection';
 import AboutUs from '../components/AboutUs';
 import Footer from '../components/Footer';
-import { locations, guides, shops, hotels, vehicles } from '../data/travelData';
-import { getLocations, getGuides, getShops, getHotels, getVehicles } from "../../services/api"; // ✅ use api.js
+import { getLocations, getGuides, getShops, getHotels, getVehicles } from "../../services/api";
 import { useNavigate } from 'react-router-dom';
 import {
   getWebsiteReviews,
   createWebsiteReview,
-} from '../../services/api';  // ✅ use api.js
+} from '../../services/api';
 
 function Home() {
   const navigate = useNavigate();
@@ -25,19 +24,50 @@ function Home() {
   const [vehicles, setVehicles] = useState([]);
 
   useEffect(() => {
-    getLocations().then((res) => setLocations(res.data)).catch(console.error);
-    getGuides().then((res) => setGuides(res.data)).catch(console.error);
-    getShops().then((res) => setShops(res.data)).catch(console.error);
-    getHotels().then((res) => setHotels(res.data)).catch(console.error);
-    getVehicles().then((res) => setVehicles(res.data)).catch(console.error);
+    // Fetch all data with proper error handling
+    const fetchData = async () => {
+      try {
+        // Fetch locations with ratings
+        const locationsRes = await getLocations();
+        const locationsWithRatings = locationsRes.data.map(location => ({
+          ...location,
+          averageRating: location.reviews_avg_rating || 0,
+          reviewCount: location.reviews_count || 0
+        }));
+        setLocations(locationsWithRatings);
+
+        // Fetch guides with ratings
+        const guidesRes = await getGuides();
+        const guidesWithRatings = guidesRes.data.map(guide => ({
+          ...guide,
+          averageRating: guide.reviews_avg_rating || 0,
+          reviewCount: guide.reviews_count || 0
+        }));
+        setGuides(guidesWithRatings);
+
+        // Fetch other data
+        const shopsRes = await getShops();
+        setShops(shopsRes.data);
+        
+        const hotelsRes = await getHotels();
+        setHotels(hotelsRes.data);
+        
+        const vehiclesRes = await getVehicles();
+        setVehicles(vehiclesRes.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  // ✅ Fetch Website Reviews
+  // Fetch Website Reviews
   useEffect(() => {
     const fetchWebsiteReviews = async () => {
       try {
         setReviewsLoading(true);
-        const response = await getWebsiteReviews(); // from api.js
+        const response = await getWebsiteReviews();
         setReviews(response.data);
 
         if (response.data.length > 0) {
@@ -57,7 +87,7 @@ function Home() {
     fetchWebsiteReviews();
   }, []);
 
-  // ✅ Submit Review
+  // Submit Review
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (newReview.rating === 0) {
@@ -66,7 +96,7 @@ function Home() {
     }
 
     try {
-      const response = await createWebsiteReview(newReview); // from api.js
+      const response = await createWebsiteReview(newReview);
       setReviews([...reviews, response.data.websiteReview]);
       setNewReview({ rating: 0, comment: '' });
     } catch (error) {
@@ -74,7 +104,7 @@ function Home() {
     }
   };
 
-  // ⭐ Render stars
+  // Render stars
   const renderStars = (rating, clickable = false) => {
     return Array.from({ length: 5 }, (_, i) => (
       <span
@@ -143,7 +173,7 @@ function Home() {
           />
         </div>
 
-        {/* ✅ Website Reviews Section */}
+        {/* Website Reviews Section */}
         <div className="mt-12 pt-16 border-t max-w-7xl mx-auto p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
             Customer Reviews
