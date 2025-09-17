@@ -323,14 +323,23 @@ const LocationDetail = ({ location, onBack }) => {
                   </div>
                 ) : guides.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {guides.map(guide => (
-                      <GuideCard
-                        key={guide.id}
-                        guide={guide}
-                        onClick={handleGuideClick}
-                        isClickable={false}
-                      />
-                    ))}
+                    {/* Sort guides by rating (highest first) */}
+                    {guides
+                      .sort((a, b) => {
+                        const ratingA = a.reviews_avg_rating || 0;
+                        const ratingB = b.reviews_avg_rating || 0;
+                        return ratingB - ratingA;
+                      })
+                      .map(guide => (
+                        <GuideCard
+                          key={guide.id}
+                          guide={guide}
+                          rating={guide.reviews_avg_rating || 0}
+                          reviewCount={guide.reviews_count || 0}
+                          onClick={handleGuideClick}
+                          isClickable={false}
+                        />
+                      ))}
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-8">No guides available for this location.</p>
@@ -348,14 +357,23 @@ const LocationDetail = ({ location, onBack }) => {
                   </div>
                 ) : shops.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {shops.map(shop => (
-                      <ShopCard
-                        key={shop.id}
-                        shop={shop}
-                        onClick={handleShopClick}
-                        isClickable={false}
-                      />
-                    ))}
+                    {/* Sort shops by rating (highest first) */}
+                    {shops
+                      .sort((a, b) => {
+                        const ratingA = a.reviews_avg_rating || 0;
+                        const ratingB = b.reviews_avg_rating || 0;
+                        return ratingB - ratingA;
+                      })
+                      .map(shop => (
+                        <ShopCard
+                          key={shop.id}
+                          shop={shop}
+                          rating={shop.reviews_avg_rating || 0}
+                          reviewCount={shop.reviews_count || 0}
+                          onClick={handleShopClick}
+                          isClickable={false}
+                        />
+                      ))}
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-8">No shops nearby for this location.</p>
@@ -373,14 +391,23 @@ const LocationDetail = ({ location, onBack }) => {
                   </div>
                 ) : hotels.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {hotels.map(hotel => (
-                      <HotelCard
-                        key={hotel.id}
-                        hotel={hotel}
-                        onClick={handleHotelClick}
-                        isClickable={false}
-                      />
-                    ))}
+                    {/* Sort hotels by rating (highest first) */}
+                    {hotels
+                      .sort((a, b) => {
+                        const ratingA = a.reviews_avg_rating || 0;
+                        const ratingB = b.reviews_avg_rating || 0;
+                        return ratingB - ratingA;
+                      })
+                      .map(hotel => (
+                        <HotelCard
+                          key={hotel.id}
+                          hotel={hotel}
+                          rating={hotel.reviews_avg_rating || 0}
+                          reviewCount={hotel.reviews_count || 0}
+                          onClick={handleHotelClick}
+                          isClickable={false}
+                        />
+                      ))}
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-8">No hotels nearby for this location.</p>
@@ -398,14 +425,23 @@ const LocationDetail = ({ location, onBack }) => {
                   </div>
                 ) : vehicles.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {vehicles.map(vehicle => (
-                      <VehicleCard
-                        key={vehicle.id}
-                        vehicle={vehicle}
-                        onClick={handleVehicleClick}
-                        isClickable={false}
-                      />
-                    ))}
+                    {/* Sort vehicles by rating (highest first) */}
+                    {vehicles
+                      .sort((a, b) => {
+                        const ratingA = a.reviews_avg_rating || 0;
+                        const ratingB = b.reviews_avg_rating || 0;
+                        return ratingB - ratingA;
+                      })
+                      .map(vehicle => (
+                        <VehicleCard
+                          key={vehicle.id}
+                          vehicle={vehicle}
+                          rating={vehicle.reviews_avg_rating || 0}
+                          reviewCount={vehicle.reviews_count || 0}
+                          onClick={handleVehicleClick}
+                          isClickable={false}
+                        />
+                      ))}
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-8">No vehicles available for this location.</p>

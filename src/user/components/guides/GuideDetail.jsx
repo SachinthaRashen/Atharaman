@@ -320,14 +320,23 @@ const GuideDetail = ({ guide, onBack }) => {
                   </div>
                 ) : locations.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {locations.map(location => (
-                      <LocationCard
-                        key={location.id}
-                        location={location}
-                        // Make location cards read-only (non-clickable)
-                        isClickable={false}
-                      />
-                    ))}
+                    {/* Sort locations by rating (highest first) */}
+                    {locations
+                      .sort((a, b) => {
+                        const ratingA = a.reviews_avg_rating || 0;
+                        const ratingB = b.reviews_avg_rating || 0;
+                        return ratingB - ratingA;
+                      })
+                      .map(location => (
+                        <LocationCard
+                          key={location.id}
+                          location={location}
+                          rating={location.reviews_avg_rating || 0}
+                          reviewCount={location.reviews_count || 0}
+                          // Make location cards read-only (non-clickable)
+                          isClickable={false}
+                        />
+                      ))}
                   </div>
                 ) : (
                   <div className="text-center py-8">

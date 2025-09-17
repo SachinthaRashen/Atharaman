@@ -3,7 +3,7 @@ import { GlobeIcon, Star } from 'lucide-react';
 import styles from '../../styles/InitialPages.module.css';
 import { useNavigate } from 'react-router-dom';
 
-export const LocationCard = ({ location, rating, animationDelay = 0, isClickable = true }) => {
+export const LocationCard = ({ location, rating = 0, reviewCount = 0, animationDelay = 0, isClickable = true }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -97,10 +97,10 @@ export const LocationCard = ({ location, rating, animationDelay = 0, isClickable
         </p>
 
         {/* Show review count if available */}
-        {location.reviewCount > 0 && (
+        {reviewCount > 0 && (
           <div className="flex items-center text-sm text-gray-500 pt-2 border-t border-gray-100">
             <Star size={14} className="text-yellow-400 fill-current mr-1" />
-            <span>{location.reviewCount} review{location.reviewCount !== 1 ? 's' : ''}</span>
+            <span>{reviewCount} review{reviewCount !== 1 ? 's' : ''}</span>
           </div>
         )}
       </div>
