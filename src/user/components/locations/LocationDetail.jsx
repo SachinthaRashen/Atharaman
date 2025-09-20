@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, ChevronLeft, ChevronRight, Star, Mountain} from 'lucide-react';
+import { ArrowLeft, MapPin, ChevronLeft, ChevronRight, Star, Mountain, GlobeIcon, MountainIcon} from 'lucide-react';
 import WeatherWidget from './WeatherWidget';
 import LocationMap from './LocationMap';
-import styles from '../../styles/LocationDetails.module.css';
+import styles from '../../styles/DetailPages.module.css';
 import Navbar from '../Navbar';
-import { getRelatedData } from '../../../services/api';
 import ReviewSection from '../ReviewSection';
+import { getRelatedData } from '../../../services/api';
 import { GuideCard } from '../guides/GuideCard';
 import GuideDetail from '../guides/GuideDetail';
 import { ShopCard } from '../shops/ShopCard';
@@ -40,7 +40,6 @@ const LocationDetail = ({ location, onBack }) => {
         try {
           setLoading(true);
           const response = await getRelatedData(location.id);
-          
           if (response.data.success) {
             setGuides(response.data.data.guides || []);
             setShops(response.data.data.shops || []);
@@ -166,12 +165,12 @@ const LocationDetail = ({ location, onBack }) => {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16 ${styles.locationDetails}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 pt-16 ${styles.entityDetails}`}>
       <Navbar onScrollToSection={scrollToSection} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Hero Section */}
-          <div className="relative h-96 overflow-hidden">
+          <div className="relative h-128 overflow-hidden">
             <div className="relative w-full h-full">
               {location.locationImage && location.locationImage.length > 0 ? (
                 <img
@@ -230,20 +229,12 @@ const LocationDetail = ({ location, onBack }) => {
             {/* Location Title Overlay */}
             <div className={`absolute bottom-8 left-8 text-white ${styles.animateSlideInUp}`}>
               <h1 className="text-4xl font-bold mb-2">{location.locationName}</h1>
-              <div className="flex items-center space-x-2 text-lg">
-                <Mountain size={20} />
-                <span>{location.locationType}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-lg">
-                <MapPin size={20} />
-                <span>{location.province}</span>
-              </div>
             </div>
           </div>
 
           {/* Content */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-8">
               {/* Main Content */}
               <div className="lg:col-span-2 space-y-8">
                 {/* Description */}
@@ -267,117 +258,26 @@ const LocationDetail = ({ location, onBack }) => {
                     name={location.locationName}
                   />
                 </div>
-
-                {/* Guides Section */}
-                <div className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger2}`}>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Guides</h2>
-                  {loading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    </div>
-                  ) : guides.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {guides.map(guide => (
-                        <GuideCard 
-                          key={guide.id} 
-                          guide={guide} 
-                          onClick={handleGuideClick}
-                          isClickable={false}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-8">No guides available for this location.</p>
-                  )}
-                </div>
-
-                {/* Hotels Section */}
-                <div className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger2}`}>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Nearby Shops</h2>
-                  {loading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    </div>
-                  ) : shops.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {shops.map(shop => (
-                        <ShopCard
-                          key={shop.id}
-                          shop={shop}
-                          onClick={handleShopClick}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-8">No shops nearby for this location.</p>
-                  )}
-                </div>
-
-                {/* Hotels Section */}
-                <div className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger2}`}>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Nearby Hotels</h2>
-                  {loading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    </div>
-                  ) : hotels.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {hotels.map(hotel => (
-                        <HotelCard
-                          key={hotel.id}
-                          hotel={hotel}
-                          onClick={handleHotelClick}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-8">No hotels nearby for this location.</p>
-                  )}
-                </div>
-
-                {/* Vehicles Section */}
-                <div className={`bg-white rounded-2xl shadow-lg p-8 ${styles.animateSlideInLeft} ${styles.animateStagger2}`}>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Vehicles</h2>
-                  {loading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    </div>
-                  ) : vehicles.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {vehicles.map(vehicle => (
-                        <VehicleCard 
-                          key={vehicle.id} 
-                          vehicle={vehicle} 
-                          onClick={handleVehicleClick}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-8">No vehicles available for this location.</p>
-                  )}
-                </div>
               </div>
 
               {/* Sidebar */}
               <div className="space-y-8">
-                {/* Weather Widget */}
-                <div className={`${styles.animateSlideInRight}`}>
-                  <WeatherWidget location={{ latitude: location.latitude, longitude: location.longitude }} />
-
-                </div>
-
                 {/* Quick Info */}
                 <div className={`bg-white rounded-2xl shadow-lg p-6 ${styles.animateSlideInRight} ${styles.animateStagger1}`}>
                   <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Info</h3>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Type</span>
-                      <span className="font-medium capitalize">{location.locationType}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Province</span>
-                      <span className="font-medium capitalize">{location.province}</span>
-                    </div>
+                    {location.locationType && (
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <MountainIcon className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                        <span>{location.locationType}</span>
+                      </div>
+                    )}
+                    {location.province && (
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <GlobeIcon className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                        <span>{location.province} Province</span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Latitude</span>
                       <span className="font-medium">{location.latitude}</span>
@@ -388,7 +288,7 @@ const LocationDetail = ({ location, onBack }) => {
                     </div>
                     {reviews.length > 0 && (
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Rating</span>
+                        <span className="text-gray-600"><strong>Rating</strong></span>
                         <div className="flex items-center space-x-1">
                           {[...Array(5)].map((_, i) => (
                             <Star
@@ -405,11 +305,152 @@ const LocationDetail = ({ location, onBack }) => {
                     )}
                   </div>
                 </div>
+
+                {/* Weather Widget */}
+                <div className={`${styles.animateSlideInRight}`}>
+                  <WeatherWidget location={{ latitude: location.latitude, longitude: location.longitude }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Guides Section */}
+            <div className="mb-8">
+              <div className="pt-5 border-t">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Guides</h2>
+                {loading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : guides.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Sort guides by rating (highest first) */}
+                    {guides
+                      .sort((a, b) => {
+                        const ratingA = a.reviews_avg_rating || 0;
+                        const ratingB = b.reviews_avg_rating || 0;
+                        return ratingB - ratingA;
+                      })
+                      .map(guide => (
+                        <GuideCard
+                          key={guide.id}
+                          guide={guide}
+                          rating={guide.reviews_avg_rating || 0}
+                          reviewCount={guide.reviews_count || 0}
+                          onClick={handleGuideClick}
+                          isClickable={false}
+                        />
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No guides available for this location.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Shops Section */}
+            <div className="mb-8">
+              <div className="pt-5 border-t">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Nearby Shops</h2>
+                {loading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : shops.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Sort shops by rating (highest first) */}
+                    {shops
+                      .sort((a, b) => {
+                        const ratingA = a.reviews_avg_rating || 0;
+                        const ratingB = b.reviews_avg_rating || 0;
+                        return ratingB - ratingA;
+                      })
+                      .map(shop => (
+                        <ShopCard
+                          key={shop.id}
+                          shop={shop}
+                          rating={shop.reviews_avg_rating || 0}
+                          reviewCount={shop.reviews_count || 0}
+                          onClick={handleShopClick}
+                          isClickable={false}
+                        />
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No shops nearby for this location.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Hotels Section */}
+            <div className="mb-8">
+              <div className="pt-5 border-t">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Nearby Hotels</h2>
+                {loading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : hotels.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Sort hotels by rating (highest first) */}
+                    {hotels
+                      .sort((a, b) => {
+                        const ratingA = a.reviews_avg_rating || 0;
+                        const ratingB = b.reviews_avg_rating || 0;
+                        return ratingB - ratingA;
+                      })
+                      .map(hotel => (
+                        <HotelCard
+                          key={hotel.id}
+                          hotel={hotel}
+                          rating={hotel.reviews_avg_rating || 0}
+                          reviewCount={hotel.reviews_count || 0}
+                          onClick={handleHotelClick}
+                          isClickable={false}
+                        />
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No hotels nearby for this location.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Vehicles Section */}
+            <div className="mb-8">
+              <div className="pt-5 border-t">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Vehicles</h2>
+                {loading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : vehicles.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Sort vehicles by rating (highest first) */}
+                    {vehicles
+                      .sort((a, b) => {
+                        const ratingA = a.reviews_avg_rating || 0;
+                        const ratingB = b.reviews_avg_rating || 0;
+                        return ratingB - ratingA;
+                      })
+                      .map(vehicle => (
+                        <VehicleCard
+                          key={vehicle.id}
+                          vehicle={vehicle}
+                          rating={vehicle.reviews_avg_rating || 0}
+                          reviewCount={vehicle.reviews_count || 0}
+                          onClick={handleVehicleClick}
+                          isClickable={false}
+                        />
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No vehicles available for this location.</p>
+                )}
               </div>
             </div>
 
             {/* Reviews Section */}
-            <div className="mt-12 pt-8 border-t">
+            <div className="mt-12 pt-5 border-t">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h2>
               
               {/* Reviews Summary */}
@@ -453,7 +494,6 @@ const LocationDetail = ({ location, onBack }) => {
                   </div>
                 </div>
               ) : (
-                // REMOVED reviewsLoading reference since we don't have that state anymore
                 <div className="bg-gray-50 rounded-lg p-6 mb-6 text-center">
                   <p className="text-gray-500">No reviews yet. Be the first to review this location!</p>
                 </div>

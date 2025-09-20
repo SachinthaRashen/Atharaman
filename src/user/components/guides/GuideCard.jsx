@@ -1,18 +1,13 @@
-// In GuideCard.jsx
 import React from 'react';
 import { Star, Phone } from 'lucide-react';
+import styles from '../../styles/InitialPages.module.css';
 import { getGuideImageUrls, getMainGuideImage } from '../../../helpers/ImageHelpers';
 import { useNavigate } from 'react-router-dom';
 
-export const GuideCard = ({ guide, rating, reviewCount, animationDelay = 0, isClickable = true }) => {
+export const GuideCard = ({ guide, rating = 0, reviewCount = 0, animationDelay = 0, isClickable = true }) => {
   const navigate = useNavigate();
   
-  const handleClick = (e) => {
-    // Prevent navigation if clicking on non-interactive elements
-    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-      return;
-    }
-    
+  const handleClick = () => {
     if (isClickable) {
       navigate(`/guides/${guide.id}`);
     }
@@ -29,17 +24,15 @@ export const GuideCard = ({ guide, rating, reviewCount, animationDelay = 0, isCl
 
   return (
     <div 
-      className={`bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
-        isClickable ? 'cursor-pointer' : 'cursor-default'
-      }`}
+      className={`bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl ${styles.entityCard} ${styles.animateSlideInCard}`}
       style={{ animationDelay: `${animationDelay}s` }}
-      onClick={isClickable ? handleClick : undefined}
+      onClick={handleClick}
     >
-      <div className="relative h-48 overflow-hidden">
-        <img 
+      <div className="relative overflow-hidden h-56">
+        <img
           src={mainImage}
-          alt={guide.guideName}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+          alt={guide.guideName || "Guide"}
+          className={`w-full h-full object-cover transition-transform duration-500 hover:scale-110 ${styles.cardImage}`}
           onError={(e) => {
             e.target.src = "/default-guide.jpg";
           }}
@@ -56,17 +49,17 @@ export const GuideCard = ({ guide, rating, reviewCount, animationDelay = 0, isCl
       </div>
       
       {/* Content */}
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
+      <div className="p-6 space-y-3">
+        <h3 className={`text-xl font-bold text-gray-900 line-clamp-1 ${styles.cardTitle}`}>
           {guide.guideName}
         </h3>
 
-        <div className={"flex items-center text-gray-600 mb-3"}>
+        <div className={`flex items-center text-gray-600 ${styles.entityInfo}`}>
           <Phone size={16} className="mr-2 flex-shrink-0" />
           <span className="text-sm line-clamp-1">{guide.personalNumber}</span>
         </div>
         
-        <p className="text-gray-600 text-sm line-clamp-2 mb-4 leading-relaxed">
+        <p className={`text-gray-600 text-sm line-clamp-3 leading-relaxed ${styles.description} mt-2 mb-3`}>
           {guide.description}
         </p>
 
@@ -79,10 +72,8 @@ export const GuideCard = ({ guide, rating, reviewCount, animationDelay = 0, isCl
         )}
       </div>
 
-      {/* Hover Effect Overlay - Only show if clickable */}
-      {isClickable && (
-        <div className={"absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 hover:opacity-100 transition-opacity duration-300"}></div>
-      )}
+      {/* Hover Effect Overlay */}
+      <div className={`absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 hover:opacity-100 transition-opacity duration-300 ${styles.hoverOverlay}`}></div>
     </div>
   );
 };

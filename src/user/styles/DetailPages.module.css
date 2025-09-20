@@ -1,5 +1,5 @@
-/* Location Details Page Styles */
-.locationDetails {
+/* Entity Details Page Styles */
+.entityDetails {
   min-height: 100vh;
 }
 
@@ -145,51 +145,51 @@
 .animateStagger3 { animation-delay: 0.3s; }
 
 /* Content Cards */
-.locationDetails .bg-white {
+.entityDetails .bg-white {
   background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
   border: 1px solid rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
 }
 
-.locationDetails .bg-white:hover {
+.entityDetails .bg-white:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 /* Map Section */
-.locationDetails .bg-gradient-to-br {
+.entityDetails .bg-gradient-to-br {
   background: linear-gradient(135deg, #dbeafe 0%, #dcfce7 100%);
   transition: all 0.3s ease;
 }
 
-.locationDetails .bg-gradient-to-br:hover {
+.entityDetails .bg-gradient-to-br:hover {
   background: linear-gradient(135deg, #bfdbfe 0%, #bbf7d0 100%);
 }
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .locationDetails .lg\\:col-span-2 {
+  .entityDetails .lg\\:col-span-2 {
     grid-column: span 1;
   }
 }
 
 @media (max-width: 768px) {
-  .locationDetails .grid-cols-1 {
+  .entityDetails .grid-cols-1 {
     gap: 1.5rem;
   }
   
-  .locationDetails .p-8 {
+  .entityDetails .p-8 {
     padding: 1.5rem;
   }
 }
 
 /* Loading States */
-.locationDetails .loading {
+.entityDetails .loading {
   opacity: 0.6;
   pointer-events: none;
 }
 
-.locationDetails .loading::after {
+.entityDetails .loading::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -210,7 +210,7 @@
 
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
-  .locationDetails * {
+  .entityDetails * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -219,18 +219,18 @@
 
 /* High contrast mode */
 @media (prefers-contrast: high) {
-  .locationDetails .bg-white {
+  .entityDetails .bg-white {
     border: 2px solid #000000;
   }
   
-  .locationDetails .text-gray-600 {
+  .entityDetails .text-gray-600 {
     color: #000000;
   }
 }
 
 /* Print styles */
 @media print {
-  .locationDetails .no-print {
+  .entityDetails .no-print {
     display: none !important;
   }
 }
