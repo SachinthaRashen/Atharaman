@@ -16,7 +16,6 @@ const Navbar = ({ onScrollToSection }) => {
 
   const navItems = [
     { name: 'Home', path: '/' },
-    { name: 'About Us', id: 'about' },
     { name: 'Locations', path: '/locations' },
     { name: 'Guides', path: '/guides' },
     { name: 'Shops', path: '/shops' },
