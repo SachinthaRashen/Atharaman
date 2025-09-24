@@ -145,8 +145,8 @@ const ProductSection = ({ id, title, data, type, onSeeMore }) => {
 
   // Get image URL for locations
   const getLocationImage = (location) => {
-    return location.locationImage && location.locationImage.length > 0 
-      ? `http://localhost:8000/storage/${location.locationImage[0]}`
+    return location.images && location.images.length > 0 
+      ? `http://localhost:8000/storage/${location.images[0].image_path}`
       : '/default-location.jpg';
   };
 
