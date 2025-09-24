@@ -67,7 +67,8 @@ export const LocationsPage = () => {
           category: getCategory(location),
           // Ratings are now included in the response
           averageRating: location.reviews_avg_rating || 0,
-          reviewCount: location.reviews_count || 0
+          reviewCount: location.reviews_count || 0,
+          locationImage: location.images ? location.images.map(img => img.image_path) : (location.locationImage || [])
         }));
         
         setLocations(locationsWithCategory);
@@ -88,9 +89,7 @@ export const LocationsPage = () => {
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = 
         location.locationName?.toLowerCase().includes(searchLower) ||
-        location.locationType?.toLowerCase().includes(searchLower) ||
-        location.description?.toLowerCase().includes(searchLower) ||
-        location.address?.toLowerCase().includes(searchLower);
+        location.locationType?.toLowerCase().includes(searchLower);
       
       const matchesFilter =
         selectedFilter === 'all' || location.category === selectedFilter;

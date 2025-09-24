@@ -33,6 +33,25 @@ const LocationDetail = ({ location, onBack }) => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const navigate = useNavigate();
 
+  // Normalize image data - handle both old and new structures
+  const getImages = () => {
+    if (location.images && location.images.length > 0) {
+      // New structure: images array with image_path
+      return location.images.map(img => img.image_path);
+    } else if (location.locationImage && location.locationImage.length > 0) {
+      // Old structure or normalized structure
+      if (typeof location.locationImage[0] === 'string') {
+        return location.locationImage;
+      } else if (location.locationImage[0]?.image_path) {
+        return location.locationImage.map(img => img.image_path);
+      }
+      return location.locationImage;
+    }
+    return [];
+  };
+
+  const images = getImages();
+
   // Fetch all related data in a single API call
   useEffect(() => {
     const fetchRelatedData = async () => {
@@ -172,9 +191,9 @@ const LocationDetail = ({ location, onBack }) => {
           {/* Hero Section */}
           <div className="relative h-128 overflow-hidden">
             <div className="relative w-full h-full">
-              {location.locationImage && location.locationImage.length > 0 ? (
+              {images.length > 0 ? (
                 <img
-                  src={`http://localhost:8000/storage/${location.locationImage[currentImageIndex]}`}
+                  src={`http://localhost:8000/storage/${images[currentImageIndex]}`}
                   alt={location.locationName}
                   className={`w-full h-full object-cover transition-all duration-500 ${styles.heroImage}`}
                 />
@@ -193,7 +212,7 @@ const LocationDetail = ({ location, onBack }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               
               {/* Image Navigation */}
-              {location.locationImage && location.locationImage.length > 1 && (
+              {images.length > 1 && (
                 <>
                   <button
                     onClick={prevImage}
@@ -211,9 +230,9 @@ const LocationDetail = ({ location, onBack }) => {
               )}
 
               {/* Image Indicators */}
-              {location.locationImage && location.locationImage.length > 1 && (
+              {images.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                  {location.locationImage.map((_, index) => (
+                  {images.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
