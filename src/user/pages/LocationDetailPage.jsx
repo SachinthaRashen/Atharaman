@@ -14,7 +14,16 @@ const LocationDetailPage = () => {
       try {
         setLoading(true);
         const response = await axios.get(`http://localhost:8000/api/locations/${id}`);
-        setLocation(response.data);
+        // Normalize the image structure for the component
+        const locationData = response.data;
+        if (locationData.images && locationData.images.length > 0) {
+          // Convert new structure to compatible format
+          locationData.locationImage = locationData.images.map(img => img.image_path);
+        } else if (!locationData.locationImage) {
+          // Ensure locationImage exists even if empty
+          locationData.locationImage = [];
+        }
+        setLocation(locationData);
       } catch (error) {
         console.error('Error fetching location:', error);
         // Redirect to locations page if not found

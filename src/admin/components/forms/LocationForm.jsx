@@ -12,8 +12,9 @@ const LocationForm = ({ location, onSave, onCancel }) => {
     longitude: location?.longitude || ''
   });
 
-  const [images, setImages] = useState([]);
-  const [existingImages, setExistingImages] = useState(location?.locationImage || []);
+  const [newImages, setNewImages] = useState([]);
+  const [existingImages, setExistingImages] = useState(location?.images || []);
+  const [imagesToRemove, setImagesToRemove] = useState([]);
   const [loading, setLoading] = useState(false);
   
   const provinces = ['Central', 'Eastern', 'North Central', 'Northern', 'North Western', 'Sabaragamuwa', 'Southern', 'Uva', 'Western'];
@@ -21,7 +22,9 @@ const LocationForm = ({ location, onSave, onCancel }) => {
 
   useEffect(() => {
     if (location) {
-      setExistingImages(location.locationImage || []);
+      setExistingImages(location.images || []);
+      setImagesToRemove([]);
+      setNewImages([]);
     }
   }, [location]);
 
@@ -35,49 +38,108 @@ const LocationForm = ({ location, onSave, onCancel }) => {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    setImages(prev => [...prev, ...files]);
+
+    const currentImageCount = existingImages.length - imagesToRemove.length;
+    const totalAfterAdd = currentImageCount + newImages.length + files.length;
+    
+    if (totalAfterAdd > 10) {
+      alert(`Maximum 10 images allowed. You currently have ${currentImageCount + newImages.length} images.`);
+      return;
+    }
+    
+    setNewImages(prev => [...prev, ...files]);
+    e.target.value = ''; // Reset file input
   };
 
   const removeNewImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setNewImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const removeExistingImage = (index) => {
-    setExistingImages(prev => prev.filter((_, i) => i !== index));
+  const removeExistingImage = (imageId) => {
+    const image = existingImages.find(img => img.id === imageId);
+    if (image) {
+      setImagesToRemove(prev => [...prev, imageId]);
+      setExistingImages(prev => prev.filter(img => img.id !== imageId));
+    }
+  };
+
+  const restoreExistingImage = (imageId) => {
+    setImagesToRemove(prev => prev.filter(id => id !== imageId));
+    if (location) {
+      const originalImage = location.images.find(img => img.id === imageId);
+      if (originalImage) {
+        setExistingImages(prev => [...prev, originalImage]);
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    // Create FormData object for file uploads
+    // Client-side validation for images
+    for (let i = 0; i < newImages.length; i++) {
+      const img = newImages[i];
+      
+      // Check file size (2MB limit)
+      if (img.size > 2 * 1024 * 1024) {
+        alert(`Image "${img.name}" is too large. Maximum size is 2MB.`);
+        setLoading(false);
+        return;
+      }
+      
+      // Check file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+      if (!validTypes.includes(img.type)) {
+        alert(`Image "${img.name}" has an invalid format. Please use JPEG, PNG, GIF, or WEBP.`);
+        setLoading(false);
+        return;
+      }
+    }
+
     const formDataObj = new FormData();
-    formDataObj.append('locationName', formData.locationName);
-    formDataObj.append('locationType', formData.locationType);
-    formDataObj.append('province', formData.province);
-    formDataObj.append('shortDescription', formData.shortDescription);
-    formDataObj.append('longDescription', formData.longDescription);
-    formDataObj.append('latitude', formData.latitude);
-    formDataObj.append('longitude', formData.longitude);
+    
+    // Append all form data
+    Object.keys(formData).forEach(key => {
+      if (formData[key] !== null && formData[key] !== undefined) {
+        formDataObj.append(key, formData[key]);
+      }
+    });
     
     // Append new images
-    images.forEach((img) => {
+    newImages.forEach((img) => {
       formDataObj.append('locationImage[]', img);
     });
 
-    // If editing and some existing images were removed
-    if (location && existingImages.length < location.locationImage.length) {
-      formDataObj.append('remove_images', 'true');
+    // Append images to remove (for edit mode)
+    if (location && imagesToRemove.length > 0) {
+      imagesToRemove.forEach(imageId => {
+        formDataObj.append('removedImages[]', imageId);
+      });
+    }
+
+    // Add method spoofing for PUT
+    if (location) {
+      formDataObj.append('_method', 'PUT');
     }
 
     try {
       await onSave(formDataObj);
     } catch (error) {
       console.error('Error in form submission:', error);
+      alert('Error saving location: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
+
+  // Calculate remaining image slots
+  const currentImageCount = existingImages.length - imagesToRemove.length;
+  const totalImages = currentImageCount + newImages.length;
+  const remainingSlots = Math.max(0, 10 - totalImages);
+
+  const removedImages = location ?
+    location.images.filter(img => imagesToRemove.includes(img.id)) : [];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -173,28 +235,64 @@ const LocationForm = ({ location, onSave, onCancel }) => {
       {/* Image Upload Section */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Images
+          Images {remainingSlots >= 0 && `(${remainingSlots} remaining)`}
         </label>
         
-        {/* Existing Images (for edit mode) */}
-        {existingImages.length > 0 && (
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">Existing Images:</p>
+        {/* Removed Images Section */}
+        {removedImages.length > 0 && (
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800 mb-2 font-medium">
+              {removedImages.length} image{removedImages.length !== 1 ? 's' : ''} marked for removal
+            </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {existingImages.map((img, index) => (
-                <div key={`existing-${index}`} className="relative h-40 border border-gray-300 rounded-lg flex items-center justify-center">
+              {removedImages.map((img) => (
+                <div key={img.id} className="relative h-40 border-2 border-dashed border-yellow-300 rounded-lg flex items-center justify-center opacity-60">
                   <img 
-                    src={`http://localhost:8000/storage/${img}`}
-                    alt={`Existing ${index}`}
+                    src={`http://localhost:8000/storage/${img.image_path}`}
+                    alt={img.alt_text}
                     className="h-full w-full object-cover rounded-lg"
                   />
                   <button
                     type="button"
-                    onClick={() => removeExistingImage(index)}
-                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+                    onClick={() => restoreExistingImage(img.id)}
+                    className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-1 shadow-md hover:bg-green-600"
+                    title="Restore image"
                   >
-                    <X className="w-4 h-4 text-gray-700" />
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v0a8 8 0 01-8 8H3" />
+                    </svg>
                   </button>
+                  <div className="absolute bottom-0 left-0 right-0 bg-yellow-500 text-white text-xs py-1 text-center">
+                    Will be removed
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Existing Images */}
+        {existingImages.length > 0 && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 mb-2">Existing Images (click × to remove):</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {existingImages.map((img) => (
+                <div key={img.id} className="relative h-40 border border-gray-300 rounded-lg flex items-center justify-center group">
+                  <img 
+                    src={`http://localhost:8000/storage/${img.image_path}`}
+                    alt={img.alt_text}
+                    className="h-full w-full object-cover rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeExistingImage(img.id)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                    #{img.order_index + 1}
+                  </div>
                 </div>
               ))}
             </div>
@@ -202,42 +300,70 @@ const LocationForm = ({ location, onSave, onCancel }) => {
         )}
         
         {/* New Image Uploads */}
-        <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2">New Images:</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {images.map((img, index) => (
-              <div key={`new-${index}`} className="relative h-40 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-                <img 
-                  src={URL.createObjectURL(img)} 
-                  alt={`New ${index}`}
-                  className="h-full w-full object-cover rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeNewImage(index)}
-                  className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
-                >
-                  <X className="w-4 h-4 text-gray-700" />
-                </button>
-              </div>
-            ))}
-            
-            {/* Upload Button */}
-            <div className="h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
-              <label htmlFor="fileInput" className="flex flex-col items-center cursor-pointer">
-                <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                <span className="text-sm text-gray-600">Add Images</span>
-              </label>
-              <input
-                type="file"
-                id="fileInput"
-                onChange={handleImageChange}
-                accept="image/*"
-                multiple
-                className="hidden"
-              />
+        {(newImages.length > 0 || remainingSlots > 0) && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 mb-2">New Images:</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {newImages.map((img, index) => (
+                <div key={`new-${index}`} className="relative h-40 border-2 border-dashed border-green-300 rounded-lg flex items-center justify-center bg-green-50">
+                  <img 
+                    src={URL.createObjectURL(img)} 
+                    alt={`New ${index}`}
+                    className="h-full w-full object-cover rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeNewImage(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                    New #{index + 1}
+                  </div>
+                  <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                    {Math.round(img.size / 1024)}KB
+                  </div>
+                </div>
+              ))}
+              
+              {remainingSlots > 0 && (
+                <div className="h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
+                  <label htmlFor="fileInput" className="flex flex-col items-center cursor-pointer p-4 text-center w-full h-full justify-center">
+                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                    <span className="text-sm text-gray-600">Add Images</span>
+                    <span className="text-xs text-gray-500 mt-1">
+                      {remainingSlots} slot{remainingSlots !== 1 ? 's' : ''} remaining
+                    </span>
+                  </label>
+                  <input
+                    type="file"
+                    id="fileInput"
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                  />
+                </div>
+              )}
             </div>
           </div>
+        )}
+
+        <div className="text-sm text-gray-500 space-y-1">
+          <p>• Maximum 10 images per location</p>
+          <p>• Currently using: {totalImages}/10 slots</p>
+          <p>• Supported formats: JPEG, JPG, PNG, GIF, WEBP</p>
+          <p>• Maximum file size: 2MB per image</p>
+          {remainingSlots <= 0 && (
+            <p className="text-orange-600 font-medium">Maximum 10 images reached.</p>
+          )}
+        </div>
+
+        <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-700">
+            <strong>Image Summary:</strong> {existingImages.length} existing ({imagesToRemove.length} marked for removal) + {newImages.length} new = {totalImages} total images
+          </p>
         </div>
       </div>
 
@@ -285,7 +411,7 @@ const LocationForm = ({ location, onSave, onCancel }) => {
           disabled={loading}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center disabled:opacity-50 min-w-[80px]"
         >
-          {loading ? <Loader className="w-5 h-5 animate-spin" /> : 'Save'}
+          {loading ? <Loader className="w-5 h-5 animate-spin" /> : (location ? 'Update' : 'Create')}
         </button>
       </div>
     </form>

@@ -74,7 +74,12 @@ export const getLocationsByProvince = (province) => api.get(`/locations/province
 export const getRelatedData = (locationId) => api.get(`/locations/${locationId}/related-data`);
 // Admin location APIs
 export const createLocation = (formData) => {return api.post('/locations', formData, {headers: {'Content-Type': 'multipart/form-data'}});};
-export const updateLocation = (id, formData) => {return api.put(`/locations/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});};
+export const updateLocation = (id, formData) => {
+  formData.append('_method', 'PUT'); // Tell Laravel to treat this as PUT
+  return api.post(`/locations/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+};
 export const deleteLocation = (id) => api.delete(`/locations/${id}`);
 
 // Public Guide APIs

@@ -4,8 +4,8 @@ import { MapPin, Globe, Image as ImageIcon, Mountain } from 'lucide-react';
 const LocationView = ({ location }) => {
   if (!location) return null;
 
-  // Get all images from the backend
-  const allImages = location.locationImage || [];
+  // Get all images from the relationship
+  const allImages = location.images || [];
 
   return (
     <div className="space-y-6">
@@ -14,8 +14,8 @@ const LocationView = ({ location }) => {
         <div className="w-full md:w-48 flex-shrink-0">
           {allImages.length > 0 ? (
             <img
-              src={`http://localhost:8000/storage/${allImages[0]}`}
-              alt={location.locationName}
+              src={`http://localhost:8000/storage/${allImages[0].image_path}`}
+              alt={allImages[0].alt_text}
               className="w-full h-48 object-cover rounded-lg"
             />
           ) : (
@@ -46,11 +46,11 @@ const LocationView = ({ location }) => {
         <div>
           <h4 className="text-lg font-semibold text-gray-900 mb-4">Gallery</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {allImages.map((img, index) => (
-              <div key={index} className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+            {allImages.map((img) => (
+              <div key={img.id} className="aspect-square overflow-hidden rounded-lg bg-gray-100">
                 <img
-                  src={`http://localhost:8000/storage/${img}`}
-                  alt={`${location.locationName} - Image ${index + 1}`}
+                  src={`http://localhost:8000/storage/${img.image_path}`}
+                  alt={img.alt_text}
                   className="w-full h-full object-cover hover:scale-105 transition-transform"
                 />
               </div>

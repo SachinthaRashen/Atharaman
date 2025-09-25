@@ -140,10 +140,8 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
       <Router>
         <AppContent />
       </Router>
-    </AuthProvider>
   );
 }
