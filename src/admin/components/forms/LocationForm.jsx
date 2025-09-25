@@ -81,9 +81,9 @@ const LocationForm = ({ location, onSave, onCancel }) => {
     for (let i = 0; i < newImages.length; i++) {
       const img = newImages[i];
       
-      // Check file size (5MB limit)
-      if (img.size > 5 * 1024 * 1024) {
-        alert(`Image "${img.name}" is too large. Maximum size is 5MB.`);
+      // Check file size (2MB limit)
+      if (img.size > 2 * 1024 * 1024) {
+        alert(`Image "${img.name}" is too large. Maximum size is 2MB.`);
         setLoading(false);
         return;
       }
@@ -354,7 +354,7 @@ const LocationForm = ({ location, onSave, onCancel }) => {
           <p>• Maximum 10 images per location</p>
           <p>• Currently using: {totalImages}/10 slots</p>
           <p>• Supported formats: JPEG, JPG, PNG, GIF, WEBP</p>
-          <p>• Maximum file size: 5MB per image</p>
+          <p>• Maximum file size: 2MB per image</p>
           {remainingSlots <= 0 && (
             <p className="text-orange-600 font-medium">Maximum 10 images reached.</p>
           )}
