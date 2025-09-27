@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, ChevronLeft, ChevronRight, Star, Mountain, GlobeIcon, MountainIcon} from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Star, GlobeIcon, MountainIcon} from 'lucide-react';
 import WeatherWidget from './WeatherWidget';
 import LocationMap from './LocationMap';
 import styles from '../../styles/DetailPages.module.css';
@@ -33,21 +33,14 @@ const LocationDetail = ({ location, onBack }) => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const navigate = useNavigate();
 
-  // Normalize image data - handle both old and new structures
+  // Normalize image data
   const getImages = () => {
     if (location.images && location.images.length > 0) {
-      // New structure: images array with image_path
+      // Images array with image_path
       return location.images.map(img => img.image_path);
-    } else if (location.locationImage && location.locationImage.length > 0) {
-      // Old structure or normalized structure
-      if (typeof location.locationImage[0] === 'string') {
-        return location.locationImage;
-      } else if (location.locationImage[0]?.image_path) {
-        return location.locationImage.map(img => img.image_path);
-      }
-      return location.locationImage;
+    } else {
+      return [];
     }
-    return [];
   };
 
   const images = getImages();

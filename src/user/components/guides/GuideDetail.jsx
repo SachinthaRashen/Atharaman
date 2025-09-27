@@ -20,6 +20,18 @@ const GuideDetail = ({ guide, onBack }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const navigate = useNavigate();
 
+  // Normalize image data
+  const getImages = () => {
+    if (guide.images && guide.images.length > 0) {
+      // Images array with image_path
+      return guide.images.map(img => img.image_path);
+    } else {
+      return [];
+    }
+  };
+
+  const images = getImages();
+
   useEffect(() => {
     const fetchGuideLocations = async () => {
       if (guide?.locations && guide.locations.length > 0) {
@@ -126,9 +138,9 @@ const GuideDetail = ({ guide, onBack }) => {
           {/* Hero Section */}
           <div className="relative h-128 overflow-hidden">
             <div className="relative w-full h-full">
-              {guide.guideImage && guide.guideImage.length > 0 ? (
+              {images.length > 0 ? (
                 <img
-                  src={`http://localhost:8000/storage/${guide.guideImage[currentImageIndex]}`}
+                  src={`http://localhost:8000/storage/${images[currentImageIndex]}`}
                   alt={guide.guideName}
                   className={`w-full h-full object-cover transition-all duration-500 ${styles.heroImage}`}
                 />
@@ -147,7 +159,7 @@ const GuideDetail = ({ guide, onBack }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 
               {/* Image Navigation */}
-              {guide.guideImage && guide.guideImage.length > 1 && (
+              {images.length > 1 && (
                 <>
                   <button
                     onClick={prevImage}
@@ -165,9 +177,9 @@ const GuideDetail = ({ guide, onBack }) => {
               )}
 
               {/* Image Indicators */}
-              {guide.guideImage && guide.guideImage.length > 1 && (
+              {images.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                  {guide.guideImage.map((_, index) => (
+                  {images.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}

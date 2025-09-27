@@ -68,6 +68,7 @@ export const LocationsPage = () => {
           // Ratings are now included in the response
           averageRating: location.reviews_avg_rating || 0,
           reviewCount: location.reviews_count || 0,
+          // Include images in the response
           locationImage: location.images ? location.images.map(img => img.image_path) : (location.locationImage || [])
         }));
         

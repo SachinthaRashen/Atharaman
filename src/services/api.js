@@ -92,7 +92,12 @@ export const updateMyGuide = (data) => api.put('/my-guide', data, {headers: {'Co
 export const deleteMyGuide = () => api.delete('/my-guide');
 // Admin guide APIs
 export const createGuide = (formData) => {return api.post('/guides', formData, {headers: {'Content-Type': 'multipart/form-data'}});};
-export const updateGuide = (id, formData) => {return api.put(`/guides/${id}`, formData, {headers: {'Content-Type': 'multipart/form-data'}});};
+export const updateGuide = (id, formData) => {
+  formData.append('_method', 'PUT'); // Tell Laravel to treat this as PUT
+  return api.post(`/guides/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+};
 export const deleteGuide = (id) => api.delete(`/guides/${id}`);
 
 // Public shop owner APIs

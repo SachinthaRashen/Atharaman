@@ -38,21 +38,12 @@ export const LocationCard = ({ location, rating = 0, reviewCount = 0, animationD
 
   const category = getCategory();
   
-  // Handle both old and new image structures
   const getFirstImage = () => {
     if (location.images && location.images.length > 0) {
-      // New structure: images array with image_path
       return `http://localhost:8000/storage/${location.images[0].image_path}`;
-    } else if (location.locationImage && location.locationImage.length > 0) {
-      // Old structure: locationImage array with direct paths
-      if (typeof location.locationImage[0] === 'string') {
-        return `http://localhost:8000/storage/${location.locationImage[0]}`;
-      } else if (location.locationImage[0].image_path) {
-        // Fallback: if it's an object with image_path
-        return `http://localhost:8000/storage/${location.locationImage[0].image_path}`;
-      }
+    } else {
+      return '/default-location.jpg';
     }
-    return '/default-location.jpg';
   };
 
   const imageUrl = getFirstImage();
