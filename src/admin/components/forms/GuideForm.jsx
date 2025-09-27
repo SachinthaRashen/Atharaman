@@ -280,7 +280,10 @@ const GuideForm = ({ guide, onSave, onCancel, isEditing }) => {
         ) : (
           <>
             {loading ? (
-              <div className="text-gray-500 text-sm">Loading users...</div>
+              <div className="flex items-center text-gray-500 text-sm">
+                <Loader className="w-4 h-4 animate-spin mr-2" />
+                Loading users...
+              </div>
             ) : error ? (
               <div className="text-red-500 text-sm">{error}</div>
             ) : (

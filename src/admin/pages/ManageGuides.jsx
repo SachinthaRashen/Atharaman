@@ -143,6 +143,7 @@ const ManageGuides = () => {
             guide={selectedGuide}
             onSave={handleSave}
             onCancel={() => setShowModal(false)}
+            isEditing={modalType === 'edit'}
           />
         )}
       </Modal>
