@@ -35,7 +35,7 @@ export const GuidesSection = () => {
     fetchLocations();
   }, []);
 
-  // Fetch guides from API with reviews
+  // Fetch guides from API
   useEffect(() => {
     const fetchGuides = async () => {
       try {
@@ -46,7 +46,9 @@ export const GuidesSection = () => {
           ...guide,
           // Ratings are now included in the response
           averageRating: guide.reviews_avg_rating || 0,
-          reviewCount: guide.reviews_count || 0
+          reviewCount: guide.reviews_count || 0,
+          // Include images in the response
+          guideImage: guide.images ? guide.images.map(img => img.image_path) : (guide.guideImage || [])
         }));
 
         setGuides(guidesWithReviews);

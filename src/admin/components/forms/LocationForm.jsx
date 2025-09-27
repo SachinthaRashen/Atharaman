@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, X, Upload, Loader } from 'lucide-react';
+import { X, Upload, Loader } from 'lucide-react';
 
 const LocationForm = ({ location, onSave, onCancel }) => {
   const [formData, setFormData] = useState({

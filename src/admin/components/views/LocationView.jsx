@@ -1,8 +1,8 @@
 import React from 'react';
-import { MapPin, Globe, Image as ImageIcon, Mountain } from 'lucide-react';
+import { Globe, Image as ImageIcon, Mountain } from 'lucide-react';
 
 const LocationView = ({ location }) => {
-  if (!location) return null;
+  if (!location) return <div>No location data available</div>;;
 
   // Get all images from the relationship
   const allImages = location.images || [];

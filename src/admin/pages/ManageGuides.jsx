@@ -5,7 +5,6 @@ import GuideForm from '../components/forms/GuideForm';
 import GuideView from '../components/views/GuideView';
 import {
   getGuides,
-  getGuideById,
   createGuide,
   updateGuide,
   deleteGuide
@@ -16,25 +15,27 @@ const ManageGuides = () => {
   const [modalType, setModalType] = useState('add');
   const [selectedGuide, setSelectedGuide] = useState(null);
   const [guides, setGuides] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Fetch guides on component mount
   useEffect(() => {
-    const fetchGuides = async () => {
-      try {
-        const response = await getGuides();
-        setGuides(response.data);
-      } catch (err) {
-        setError(err.message);
-        console.error('Error fetching guides:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     fetchGuides();
   }, []);
+
+  const fetchGuides = async () => {
+    try {
+      setLoading(true);
+      const response = await getGuides();
+      setGuides(response.data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch guides. Please try again.');
+      console.error('Error fetching guides:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const columns = [
     { key: 'guideName', label: 'Guide Name', sortable: true },
@@ -49,16 +50,10 @@ const ManageGuides = () => {
     setShowModal(true);
   };
 
-  const handleView = async (guide) => {
-    try {
-      // Fetch full guide details
-      const response = await getGuideById(guide.id);
-      setModalType('view');
-      setSelectedGuide(response.data);
-      setShowModal(true);
-    } catch (err) {
-      console.error('Error fetching guide details:', err);
-    }
+  const handleView = (guide) => {
+    setModalType('view');
+    setSelectedGuide(guide);
+    setShowModal(true);
   };
 
   const handleEdit = (guide) => {
@@ -80,30 +75,28 @@ const ManageGuides = () => {
 
   const handleSave = async (formData) => {
     try {
-      const response = modalType === 'add'
-        ? await createGuide(formData)
-        : await updateGuide(selectedGuide.id, formData);
-
-      setGuides(prev => modalType === 'add'
-        ? [...prev, response.data.guide]
-        : prev.map(g => g.id === response.data.guide.id ? {
-            ...response.data.guide,
-            languages: Array.isArray(response.data.guide.languages) 
-              ? response.data.guide.languages 
-              : [],
-            locations: Array.isArray(response.data.guide.locations)
-              ? response.data.guide.locations
-              : []
-          } : g)
-      );
+      if (modalType === 'add') {
+        const response = await createGuide(formData);
+        setGuides([...guides, response.data.guide]);
+      } else if (modalType === 'edit') {
+        const response = await updateGuide(selectedGuide.id, formData);
+        
+        if (response.status === 200) {
+          setGuides(guides.map(g => 
+            g.id === selectedGuide.id ? response.data.guide : g
+          ));
+        }
+      }
       setShowModal(false);
-    } catch (error) {
-      console.error('Save failed:', error);
+      setError(null);
+    } catch (err) {
+      console.error('Error saving guide:', err);
     }
   };
 
-  if (isLoading) return <div>Loading guides...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) {
+    return <div className="mt-16 p-4">Loading guides...</div>;
+  }
 
   return (
     <div className="mt-16">
@@ -119,6 +112,12 @@ const ManageGuides = () => {
           Add New
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
 
       <DataTable
         data={guides}
@@ -144,7 +143,6 @@ const ManageGuides = () => {
             guide={selectedGuide}
             onSave={handleSave}
             onCancel={() => setShowModal(false)}
-            isEditing={modalType === 'edit'}
           />
         )}
       </Modal>

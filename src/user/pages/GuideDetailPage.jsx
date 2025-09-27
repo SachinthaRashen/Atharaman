@@ -14,7 +14,16 @@ const GuideDetailPage = () => {
       try {
         setLoading(true);
         const response = await axios.get(`http://localhost:8000/api/guides/${id}`);
-        setGuide(response.data);
+        // Normalize the image structure for the component
+        const guideData = response.data;
+        if (guideData.images && guideData.images.length > 0) {
+          // Convert new structure to compatible format
+          guideData.guideImage = guideData.images.map(img => img.image_path);
+        } else if (!guideData.guideImage) {
+          // Ensure guideImage exists even if empty
+          guideData.guideImage = [];
+        }
+        setGuide(guideData);
       } catch (error) {
         console.error('Error fetching guide:', error);
         // Redirect to guides page if not found
