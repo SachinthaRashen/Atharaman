@@ -1,40 +1,33 @@
 import React from 'react';
-import { Mail, Phone, MessageCircle, Languages, MapPin, User } from 'lucide-react';
+import { Mail, Phone, MessageCircle, Languages, MapPin, User, IdCardIcon, Image as ImageIcon } from 'lucide-react';
 
 const GuideView = ({ guide }) => {
   if (!guide) return <div>No guide data available</div>;
 
-  // Safely parse JSON fields with fallbacks
-  const languages = guide.languages 
-    ? (typeof guide.languages === 'string' ? JSON.parse(guide.languages) : guide.languages)
-    : [];
-  
-  const locations = guide.locations 
-    ? (typeof guide.locations === 'string' ? JSON.parse(guide.locations) : guide.locations)
-    : [];
-  
-  const guideImages = guide.guideImage 
-    ? (typeof guide.guideImage === 'string' ? JSON.parse(guide.guideImage) : guide.guideImage)
-    : [];
+  // Get all images from the relationship
+  const allImages = guide.images || [];
+
+  // Extract languages and locations from guide object
+  const languages = guide.languages || [];
+  const locations = guide.locations || [];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start space-x-6">
-        {guideImages.length > 0 ? (
-          <img
-            src={`http://localhost:8000/storage/${guideImages[0]}`} // Adjust based on your storage setup
-            alt={guide.guideName}
-            className="w-32 h-32 object-cover rounded-lg"
-            onError={(e) => {
-              e.target.src = '/placeholder-image.jpg';
-            }}
-          />
-        ) : (
-          <div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center">
-            <span className="text-gray-500">No image</span>
-          </div>
-        )}
-
+      {/* Guide Header */}
+      <div className="flex flex-col md:flex-row items-start gap-6">
+        <div className="w-full md:w-48 flex-shrink-0">
+          {allImages.length > 0 ? (
+            <img
+              src={`http://localhost:8000/storage/${allImages[0].image_path}`}
+              alt={allImages[0].alt_text}
+              className="w-full h-48 object-cover rounded-lg"
+            />
+          ) : (
+            <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+              <ImageIcon className="w-12 h-12 text-gray-400" />
+            </div>
+          )}
+        </div>
         <div className="flex-1">
           <h3 className="text-2xl font-bold text-gray-900 mb-2">{guide.guideName}</h3>
           <p className="text-gray-600 mb-4">{guide.description}</p>
@@ -42,8 +35,30 @@ const GuideView = ({ guide }) => {
             <User className="w-4 h-4 mr-1" />
             <span>User ID: {guide.user_id}</span>
           </div>
+          <div className="flex items-center text-sm text-gray-500 mt-2">
+            <IdCardIcon className="w-4 h-4 mr-1" />
+            <span>{guide.guideNic}</span>
+          </div>
         </div>
       </div>
+
+      {/* Image Gallery */}
+      {allImages.length > 0 && (
+        <div>
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Gallery</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {allImages.map((img) => (
+              <div key={img.id} className="aspect-square overflow-hidden rounded-lg bg-gray-100">
+                <img
+                  src={`http://localhost:8000/storage/${img.image_path}`}
+                  alt={img.alt_text}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -63,16 +78,6 @@ const GuideView = ({ guide }) => {
                 <span className="text-gray-700">{guide.whatsappNumber}</span>
               </div>
             )}
-          </div>
-        </div>
-
-        <div>
-          <h4 className="text-lg font-semibold text-gray-900 mb-3">Additional Details</h4>
-          <div className="space-y-3">
-            <div>
-              <span className="text-sm font-medium text-gray-500">NIC:</span>
-              <p className="text-gray-900">{guide.guideNic}</p>
-            </div>
           </div>
         </div>
       </div>
